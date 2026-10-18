@@ -22,31 +22,9 @@
 
 **sltop** is an ultra-lightweight, real-time terminal system monitor designed for Linux servers and development environments. Built from the ground up in Rust, it delivers live hardware telemetry, high-resolution Braille graphs, container cgroup resolution, and process management with near-zero CPU and memory footprint.
 
-```text
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ sltop  Scoppiato LAB  [Tokyo Slate] Host: srv-01 │ Up: 3d 11h │ Load: 1.12 │ 100ms │
-└────────────────────────────────────────────────────────────────────────────────────┘
-┌ [ CPU HISTORY ] ────────────────────────┐┌ [ NETWORK (eth0) ] ─────────────────────┐
-│100% ┤                                   ││↓ 1.4 MiB/s (Pk 5.5M)  ↑ 312 KiB/s       │
-│     │                                   ││ 1.4M ┤                         ⡇   ⢰⡄   │
-│ 50% ┤                 ⢀⣀⡠⠤⠒⠊⠉⠉⠁         ││      │                         ⣿⣦ ⣿⣿    │
-│  0% ┴─────────────────⣿⣿⣿⣿⣶⣤⣀⣀          ││   0B ┴─────────────────────────⣠⣿⣿⣿⣦⣿⣿  │
-└─────────────────────────────────────────┘└─────────────────────────────────────────┘
-┌ [ CPU - 2 Cores ] ──────────────────────┐┌ [ MEMORY & STORAGE ] ───────────────────┐
-│Total: [████████████]  48.2% │ PSI: 0.8% ││RAM  [████████░░░░]  58.6%  2.2G / 3.8G  │
-│cpu0   [████░░░░░░]    38.1% 2294MHz     ││SWAP [████████████] 100.0%  512M / 512M  │
-│cpu1   [██████░░░░]    58.3% 2294MHz     ││─ Filesystems ───────────────────────────│
-│Temp:  42°C          Freq: 2294MHz       ││/    [██████░░░░]    60.4% 29.6G / 49.1G │
-└─────────────────────────────────────────┘└─────────────────────────────────────────┘
-┌ [ PROCESSES (644 Tasks, 5 Active) - Container View ] ──────────────────────────────┐
-│  PID    USER     STATE   CPU% (Load) v  MEM% (Usage)  CONTAINER      COMMAND       │
-│> [48]   app      * Run   34.8% [██░░░]  30.7% [██░░░] docker:web_app node server   │
-│  [229]  root     o Slp   29.7% [█░░░░]  42.5% [██░░░] worker.service python3 app   │
-│  [30]   root     o Slp   14.8% [█░░░░]  33.6% [██░░░] docker.service dockerd       │
-│  [4]    redis    o Slp    3.6% [░░░░░]   0.7% [░░░░░] docker:redis   redis-server  │
-└────────────────────────────────────────────────────────────────────────────────────┘
- [q] Quit  [↑↓] Nav  [Spc] Fold  [g] Grp  [t] Tree  [C] Docker  [s] Ports  [l] Logs [?] Help
-```
+<p align="center">
+  <img src="assets/preview.png" alt="sltop Live Dashboard Preview" width="100%"/>
+</p>
 
 ---
 
