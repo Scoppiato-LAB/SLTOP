@@ -1,0 +1,53 @@
+name: Deploy APT Repository
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  deploy-apt:
+    name: Build & Deploy APT Repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install APT repository tools
+        run: sudo apt-get update && sudo apt-get install -y dpkg-dev
+
+      - name: Download release .deb package
+        run: |
+          mkdir -p repo/pool/main/s/sltop
+          mkdir -p repo/dists/stable/main/binary-amd64
+          curl -sSL -o repo/pool/main/s/sltop/sltop-amd64.deb https://github.com/Scoppiato-LAB/SLTOP/releases/download/v0.2.0/sltop-amd64.deb
+          cp setup-apt.sh repo/
+
+      - name: Generate APT repository index
+        run: |
+          cd repo
+          dpkg-scanpackages --multiversion pool/main > dists/stable/main/binary-amd64/Packages
+          gzip -k -9 -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
+
+          cd dists/stable
+          cat <<EOF > Release
+          Origin: Scoppiato LAB
+          Label: Scoppiato LAB APT Repository
+          Suite: stable
+          Codename: stable
+          Architectures: amd64
+          Components: main
+          Description: Official Debian/Ubuntu repository for Scoppiato LAB tools
+          Date: $(date -Ru)
+          EOF
+
+      - name: Deploy to GitHub Pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./repo
+          publish_branch: gh-pages

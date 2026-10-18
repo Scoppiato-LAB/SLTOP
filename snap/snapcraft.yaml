@@ -1,0 +1,26 @@
+name: sltop
+base: core24
+version: '0.2.0'
+summary: Lightweight real-time terminal system monitor for Linux
+description: |
+  sltop is an ultra-lightweight, real-time terminal system monitor designed
+  for Linux servers and development environments. Built in Rust, it delivers
+  live hardware telemetry, Braille graphs, container cgroup resolution, PSI
+  telemetry, and interactive process management.
+  Maintained by Scoppiato LAB (https://scoppiato.it).
+
+grade: stable
+confinement: classic
+
+apps:
+  sltop:
+    command: bin/sltop
+
+parts:
+  sltop:
+    plugin: rust
+    source: .
+    build-packages:
+      - gcc
+      - pkg-config
+    rust-features: []

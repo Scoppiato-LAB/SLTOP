@@ -56,36 +56,36 @@ curl -fsSL https://raw.githubusercontent.com/Scoppiato-LAB/SLTOP/main/install.sh
 
 ### Package Managers
 
-#### 🦀 Cargo (Crates.io)
-If you have the Rust toolchain installed:
+#### ⚡ Canonical Snap Store (Universal Linux)
+Available for all Linux distributions with snap support (Ubuntu, Debian, Fedora, Arch, openSUSE, etc.):
 ```bash
-cargo install sltop
+sudo snap install sltop
 ```
 
-#### 🐧 Arch Linux (AUR)
-`sltop` is available in the Arch User Repository:
+#### 📦 Debian, Ubuntu, Proxmox VE (APT Repository)
+Add the Scoppiato LAB APT repository to receive automatic updates with `apt upgrade`:
 ```bash
-yay -S sltop-bin
-# or
-paru -S sltop-bin
+curl -fsSL https://raw.githubusercontent.com/Scoppiato-LAB/SLTOP/main/setup-apt.sh | sudo bash
+sudo apt install sltop
 ```
-
-#### 📦 Debian / Ubuntu (`.deb`)
-Download the latest `.deb` package from the [Releases](https://github.com/Scoppiato-LAB/SLTOP/releases) page:
+Or install the standalone `.deb` package directly from [Releases](https://github.com/Scoppiato-LAB/SLTOP/releases):
 ```bash
-sudo dpkg -i sltop-amd64.deb
-# or
 sudo apt install ./sltop-amd64.deb
 ```
 
-#### 🎩 Fedora / RHEL (`.rpm`)
-Download the latest `.rpm` package from the [Releases](https://github.com/Scoppiato-LAB/SLTOP/releases) page:
+#### 🎩 Fedora, RHEL, CentOS, Rocky Linux (Copr & DNF)
+Enable the official Scoppiato LAB Copr repository:
+```bash
+sudo dnf copr enable Scoppiato-LAB/sltop
+sudo dnf install sltop
+```
+Or install the standalone `.rpm` package directly:
 ```bash
 sudo dnf install ./sltop-amd64.rpm
 ```
 
-#### 🍏 macOS (Homebrew)
-Via the Scoppiato LAB Homebrew Tap:
+#### 🍏 macOS & Linux (Homebrew)
+Via the official Scoppiato LAB Tap:
 ```bash
 brew install Scoppiato-LAB/tap/sltop
 ```
@@ -98,6 +98,16 @@ winget install ScoppiatoLAB.sltop
 Via Scoop:
 ```powershell
 scoop install sltop
+```
+
+#### 🐧 Arch Linux (AUR)
+```bash
+yay -S sltop-bin
+```
+
+#### 🦀 Cargo (Crates.io)
+```bash
+cargo install sltop
 ```
 
 ---
