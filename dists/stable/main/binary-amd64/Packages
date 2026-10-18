@@ -1,0 +1,19 @@
+Package: sltop
+Version: 0.2.0-1
+Architecture: amd64
+Maintainer: Scoppiato LAB <info@scoppiato.it>
+Installed-Size: 1249
+Depends: libc6 (>= 2.39)
+Filename: pool/main/s/sltop/sltop-amd64.deb
+Size: 488832
+MD5sum: c6c4fd75b7cad1cb11b8cce2f41db540
+SHA1: 44914aa67d1ccb171a7b99a0637db7c55953bec4
+SHA256: 5e6b51e8b341c793cdc2bd62288ab1c9ff3b955ffe722203079f338b0ebeb17c
+Section: utils
+Priority: optional
+Homepage: https://scoppiato.it
+Description: Lightweight real-time terminal system monitor for Linux by Scoppiato LAB.
+ sltop is an ultra-lightweight real-time terminal system monitor developed by
+ Scoppiato LAB, featuring Braille graphs, container cgroup resolution, PSI
+ metrics, and interactive process controls.
+
