@@ -15,8 +15,8 @@ source_x86_64=("https://github.com/Scoppiato-LAB/SLTOP/releases/download/v${pkgv
 source_aarch64=("https://github.com/Scoppiato-LAB/SLTOP/releases/download/v${pkgver}/sltop-linux-arm64.tar.gz")
 
 # Fill these hashes after the first GitHub Release or run 'updpkgsums'
-sha256sums_x86_64=('SKIP')
-sha256sums_aarch64=('SKIP')
+sha256sums_x86_64=('e5e3cc375ae028690facbfc5270521b60f4028a3f9204a0b9db95c0586985abd')
+sha256sums_aarch64=('85013943fe73bc6d68905ad2cf7899e434b39bc10881b1f601f393e8399888c0')
 
 package() {
     install -Dm755 "${srcdir}/sltop" "${pkgdir}/usr/bin/sltop"

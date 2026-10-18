@@ -6,7 +6,7 @@
   "architecture": {
     "64bit": {
       "url": "https://github.com/Scoppiato-LAB/SLTOP/releases/download/v0.2.0/sltop-windows-amd64.zip",
-      "hash": "REPLACE_WITH_SHA256"
+      "hash": "a398af7713abff6175845c087187f0814d93490cfc15259b7453b9376b9d330b"
     }
   },
   "bin": "sltop.exe",
