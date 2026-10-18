@@ -12,9 +12,27 @@
 <p align="center">
   <a href="https://scoppiato.it"><img src="https://img.shields.io/badge/Website-scoppiato.it-00E676?style=for-the-badge&logo=safari&logoColor=white" alt="Website"></a>
   <a href="https://discord.scoppiato.it"><img src="https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://crates.io/crates/sltop"><img src="https://img.shields.io/crates/v/sltop.svg?style=for-the-badge&logo=rust" alt="Crates.io"></a>
+  <a href="https://crates.io/crates/sltop"><img src="https://img.shields.io/crates/v/sltop?style=for-the-badge&logo=rust&logoColor=white&label=crates.io" alt="Crates.io"></a>
   <a href="https://github.com/Scoppiato-LAB/SLTOP/releases"><img src="https://img.shields.io/github/v/release/Scoppiato-LAB/SLTOP?style=for-the-badge&logo=github" alt="GitHub Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License: MIT"></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux">
+  <img src="https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS">
+  <img src="https://img.shields.io/badge/Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Windows">
+  <a href="https://crates.io/crates/sltop"><img src="https://img.shields.io/badge/Cargo-DEA584?style=for-the-badge&logo=rust&logoColor=black" alt="Cargo"></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Debian-A81D33?style=for-the-badge&logo=debian&logoColor=white" alt="Debian">
+  <img src="https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu">
+  <img src="https://img.shields.io/badge/Proxmox_VE-E57000?style=for-the-badge&logo=proxmox&logoColor=white" alt="Proxmox">
+  <img src="https://img.shields.io/badge/Arch_Linux-1793D1?style=for-the-badge&logo=arch-linux&logoColor=white" alt="Arch Linux">
+  <img src="https://img.shields.io/badge/Fedora-51A2DA?style=for-the-badge&logo=fedora&logoColor=white" alt="Fedora">
+  <img src="https://img.shields.io/badge/RHEL-EE0000?style=for-the-badge&logo=red-hat&logoColor=white" alt="RHEL">
+  <img src="https://img.shields.io/badge/CentOS-262577?style=for-the-badge&logo=centos&logoColor=white" alt="CentOS">
+  <img src="https://img.shields.io/badge/Rocky_Linux-10B981?style=for-the-badge&logo=rocky-linux&logoColor=white" alt="Rocky Linux">
 </p>
 
 ---
@@ -62,7 +80,7 @@ Available for all Linux distributions with snap support (Ubuntu, Debian, Fedora,
 sudo snap install sltop
 ```
 
-#### 📦 Debian, Ubuntu, Proxmox VE (APT Repository)
+#### 📦 Debian, Ubuntu, Proxmox VE (APT Repository & .deb)
 Add the Scoppiato LAB APT repository to receive automatic updates with `apt upgrade`:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Scoppiato-LAB/SLTOP/main/setup-apt.sh | sudo bash
@@ -73,7 +91,7 @@ Or install the standalone `.deb` package directly from [Releases](https://github
 sudo apt install ./sltop-amd64.deb
 ```
 
-#### 🎩 Fedora, RHEL, CentOS, Rocky Linux (Copr & DNF)
+#### 🎩 Fedora, RHEL, CentOS, Rocky Linux (Copr & DNF / .rpm)
 Enable the official Scoppiato LAB Copr repository:
 ```bash
 sudo dnf copr enable Scoppiato-LAB/sltop
@@ -82,6 +100,8 @@ sudo dnf install sltop
 Or install the standalone `.rpm` package directly:
 ```bash
 sudo dnf install ./sltop-amd64.rpm
+# or
+sudo rpm -ivh sltop-amd64.rpm
 ```
 
 #### 🍏 macOS & Linux (Homebrew)
