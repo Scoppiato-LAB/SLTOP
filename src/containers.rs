@@ -7,8 +7,8 @@ use std::time::Duration;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProcessGroupDomain {
-    Docker(String), // Container name (e.g., "kasm_guac")
-    Service(String), // Systemd service (e.g., "mariadb.service")
+    Docker(String),      // Container name (e.g., "kasm_guac")
+    Service(String),     // Systemd service (e.g., "mariadb.service")
     UserSession(String), // User session (e.g., "user-1000")
     System,
 }
@@ -36,30 +36,28 @@ impl ContainerTracker {
         // Background thread refreshing docker container ID -> Name every 15 seconds
         thread::Builder::new()
             .name("sltop-container-tracker".into())
-            .spawn(move || {
-                loop {
-                    let mut new_map = HashMap::new();
-                    if let Ok(output) = Command::new("docker")
-                        .args(["ps", "--format", "{{.ID}} {{.Names}}"])
-                        .output()
-                    {
-                        if output.status.success() {
-                            let text = String::from_utf8_lossy(&output.stdout);
-                            for line in text.lines() {
-                                let mut parts = line.split_whitespace();
-                                if let (Some(id), Some(name)) = (parts.next(), parts.next()) {
-                                    new_map.insert(id.to_string(), name.to_string());
-                                }
+            .spawn(move || loop {
+                let mut new_map = HashMap::new();
+                if let Ok(output) = Command::new("docker")
+                    .args(["ps", "--format", "{{.ID}} {{.Names}}"])
+                    .output()
+                {
+                    if output.status.success() {
+                        let text = String::from_utf8_lossy(&output.stdout);
+                        for line in text.lines() {
+                            let mut parts = line.split_whitespace();
+                            if let (Some(id), Some(name)) = (parts.next(), parts.next()) {
+                                new_map.insert(id.to_string(), name.to_string());
                             }
                         }
                     }
-
-                    if let Ok(mut lock) = cache_clone.lock() {
-                        *lock = new_map;
-                    }
-
-                    thread::sleep(Duration::from_secs(15));
                 }
+
+                if let Ok(mut lock) = cache_clone.lock() {
+                    *lock = new_map;
+                }
+
+                thread::sleep(Duration::from_secs(15));
             })
             .ok();
 
@@ -77,7 +75,10 @@ impl ContainerTracker {
             // Check for Docker
             if let Some(idx) = line.find("docker-") {
                 let rest = &line[idx + 7..];
-                let hex_id = rest.split(|c: char| !c.is_ascii_hexdigit()).next().unwrap_or("");
+                let hex_id = rest
+                    .split(|c: char| !c.is_ascii_hexdigit())
+                    .next()
+                    .unwrap_or("");
                 if hex_id.len() >= 12 {
                     let short_id = &hex_id[..12];
                     if let Ok(lock) = self.docker_cache.lock() {
@@ -89,7 +90,10 @@ impl ContainerTracker {
                 }
             } else if let Some(idx) = line.find("/docker/") {
                 let rest = &line[idx + 8..];
-                let hex_id = rest.split(|c: char| !c.is_ascii_hexdigit()).next().unwrap_or("");
+                let hex_id = rest
+                    .split(|c: char| !c.is_ascii_hexdigit())
+                    .next()
+                    .unwrap_or("");
                 if hex_id.len() >= 12 {
                     let short_id = &hex_id[..12];
                     if let Ok(lock) = self.docker_cache.lock() {
@@ -121,5 +125,11 @@ impl ContainerTracker {
         }
 
         ProcessGroupDomain::System
+    }
+}
+
+impl Default for ContainerTracker {
+    fn default() -> Self {
+        Self::new()
     }
 }

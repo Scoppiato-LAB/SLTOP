@@ -198,7 +198,7 @@ hide_kernel_threads = true
 
 - 🌐 **Official Website**: [https://scoppiato.it](https://scoppiato.it)
 - 💬 **Discord Community**: [https://discord.scoppiato.it](https://discord.scoppiato.it)
-- 📦 **GitHub**: [https://github.com/scoppiatolab/sltop](https://github.com/scoppiatolab/sltop)
+- 📦 **GitHub**: [https://github.com/Scoppiato-LAB/SLTOP](https://github.com/Scoppiato-LAB/SLTOP)
 
 Join our Discord server for support, feature discussions, and updates on our open-source tools!
 

@@ -15,8 +15,8 @@ use config::AppConfig;
 use crossterm::{
     cursor::{Hide, Show},
     event::{
-        self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind,
-        KeyModifiers, MouseButton, MouseEventKind,
+        self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind, KeyModifiers,
+        MouseButton, MouseEventKind,
     },
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -36,12 +36,7 @@ struct TerminalGuard;
 impl Drop for TerminalGuard {
     fn drop(&mut self) {
         let _ = disable_raw_mode();
-        let _ = execute!(
-            stdout(),
-            LeaveAlternateScreen,
-            DisableMouseCapture,
-            Show
-        );
+        let _ = execute!(stdout(), LeaveAlternateScreen, DisableMouseCapture, Show);
     }
 }
 
@@ -50,12 +45,7 @@ fn setup_panic_hook() {
     let original_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
         let _ = disable_raw_mode();
-        let _ = execute!(
-            stdout(),
-            LeaveAlternateScreen,
-            DisableMouseCapture,
-            Show
-        );
+        let _ = execute!(stdout(), LeaveAlternateScreen, DisableMouseCapture, Show);
         original_hook(panic_info);
     }));
 }
@@ -105,13 +95,11 @@ fn main() -> io::Result<()> {
                 println!("sltop 0.2.0 (Scoppiato LAB - https://scoppiato.it)");
                 return Ok(());
             }
-            "-i" | "--interval" => {
-                if i + 1 < args.len() {
-                    if let Ok(ms) = args[i + 1].parse::<u64>() {
-                        cli_interval = Some(ms.clamp(100, 5000));
-                    }
-                    i += 1;
+            "-i" | "--interval" if i + 1 < args.len() => {
+                if let Ok(ms) = args[i + 1].parse::<u64>() {
+                    cli_interval = Some(ms.clamp(100, 5000));
                 }
+                i += 1;
             }
             _ => {}
         }
@@ -133,7 +121,9 @@ fn main() -> io::Result<()> {
     terminal.clear()?;
 
     // Sampling interval
-    let initial_interval = cli_interval.unwrap_or(config.sample_interval_ms).clamp(100, 5000);
+    let initial_interval = cli_interval
+        .unwrap_or(config.sample_interval_ms)
+        .clamp(100, 5000);
     let sample_interval_ms = Arc::new(AtomicU64::new(initial_interval));
     let (tx_metrics, rx_metrics) = crossbeam_channel::unbounded();
     let is_running = Arc::new(AtomicBool::new(true));
@@ -235,41 +225,42 @@ fn handle_key_event(app: &mut App, code: KeyCode, modifiers: KeyModifiers) {
     // Modal Interaction Mode
     if app.active_modal != ActiveModal::None {
         match app.active_modal.clone() {
-            ActiveModal::Help => {
-                match code {
-                    KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') | KeyCode::Char('?') => {
-                        app.close_modal();
-                    }
-                    _ => {}
+            ActiveModal::Help => match code {
+                KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') | KeyCode::Char('?') => {
+                    app.close_modal();
                 }
-            }
-            ActiveModal::ProcessInspect(_) => {
-                match code {
-                    KeyCode::Char('r') => app.open_renice_modal(),
-                    KeyCode::Char('s') => app.open_sockets_modal(),
-                    KeyCode::Char('l') => app.open_logs_modal(),
-                    KeyCode::Char('e') => app.open_environ_modal(),
-                    KeyCode::Char('x') => app.open_kill_modal(),
-                    KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') | KeyCode::Char('?') => {
-                        app.close_modal();
-                    }
-                    _ => {}
+                _ => {}
+            },
+            ActiveModal::ProcessInspect(_) => match code {
+                KeyCode::Char('r') => app.open_renice_modal(),
+                KeyCode::Char('s') => app.open_sockets_modal(),
+                KeyCode::Char('l') => app.open_logs_modal(),
+                KeyCode::Char('e') => app.open_environ_modal(),
+                KeyCode::Char('x') => app.open_kill_modal(),
+                KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') | KeyCode::Char('?') => {
+                    app.close_modal();
                 }
-            }
-            ActiveModal::ProcessRenice { .. } => {
-                match code {
-                    KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('-') => app.adjust_renice_target(-1),
-                    KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('+') | KeyCode::Char('=') => app.adjust_renice_target(1),
-                    KeyCode::Char('1') => app.set_renice_preset(-10),
-                    KeyCode::Char('2') => app.set_renice_preset(0),
-                    KeyCode::Char('3') => app.set_renice_preset(10),
-                    KeyCode::Char('4') => app.set_renice_preset(19),
-                    KeyCode::Enter => app.apply_renice(),
-                    KeyCode::Esc | KeyCode::Char('q') => app.close_modal(),
-                    _ => {}
+                _ => {}
+            },
+            ActiveModal::ProcessRenice { .. } => match code {
+                KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('-') => {
+                    app.adjust_renice_target(-1)
                 }
-            }
-            ActiveModal::UserFilter { selected_idx, ref users } => {
+                KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('+') | KeyCode::Char('=') => {
+                    app.adjust_renice_target(1)
+                }
+                KeyCode::Char('1') => app.set_renice_preset(-10),
+                KeyCode::Char('2') => app.set_renice_preset(0),
+                KeyCode::Char('3') => app.set_renice_preset(10),
+                KeyCode::Char('4') => app.set_renice_preset(19),
+                KeyCode::Enter => app.apply_renice(),
+                KeyCode::Esc | KeyCode::Char('q') => app.close_modal(),
+                _ => {}
+            },
+            ActiveModal::UserFilter {
+                selected_idx,
+                ref users,
+            } => {
                 let users_len = users.len();
                 match code {
                     KeyCode::Up | KeyCode::Char('k') => {
@@ -278,7 +269,11 @@ fn handle_key_event(app: &mut App, code: KeyCode, modifiers: KeyModifiers) {
                         } else {
                             selected_idx - 1
                         };
-                        if let ActiveModal::UserFilter { ref mut selected_idx, .. } = app.active_modal {
+                        if let ActiveModal::UserFilter {
+                            ref mut selected_idx,
+                            ..
+                        } = app.active_modal
+                        {
                             *selected_idx = next_idx;
                         }
                     }
@@ -288,7 +283,11 @@ fn handle_key_event(app: &mut App, code: KeyCode, modifiers: KeyModifiers) {
                         } else {
                             selected_idx + 1
                         };
-                        if let ActiveModal::UserFilter { ref mut selected_idx, .. } = app.active_modal {
+                        if let ActiveModal::UserFilter {
+                            ref mut selected_idx,
+                            ..
+                        } = app.active_modal
+                        {
                             *selected_idx = next_idx;
                         }
                     }
@@ -311,16 +310,14 @@ fn handle_key_event(app: &mut App, code: KeyCode, modifiers: KeyModifiers) {
             }
             ActiveModal::ProcessSockets { .. }
             | ActiveModal::ProcessEnviron { .. }
-            | ActiveModal::ProcessLogs { .. } => {
-                match code {
-                    KeyCode::Up | KeyCode::Char('k') => app.modal_scroll_up(1),
-                    KeyCode::Down | KeyCode::Char('j') => app.modal_scroll_down(1),
-                    KeyCode::PageUp => app.modal_scroll_up(10),
-                    KeyCode::PageDown => app.modal_scroll_down(10),
-                    KeyCode::Esc | KeyCode::Char('q') => app.close_modal(),
-                    _ => {}
-                }
-            }
+            | ActiveModal::ProcessLogs { .. } => match code {
+                KeyCode::Up | KeyCode::Char('k') => app.modal_scroll_up(1),
+                KeyCode::Down | KeyCode::Char('j') => app.modal_scroll_down(1),
+                KeyCode::PageUp => app.modal_scroll_up(10),
+                KeyCode::PageDown => app.modal_scroll_down(10),
+                KeyCode::Esc | KeyCode::Char('q') => app.close_modal(),
+                _ => {}
+            },
             ActiveModal::ProcessKill { .. } => {
                 match code {
                     KeyCode::Char('t') => app.kill_process_with_signal(15), // SIGTERM

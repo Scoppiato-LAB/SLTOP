@@ -78,9 +78,9 @@ impl ProcessViewType {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ViewMode {
-    Balanced,   // 2 Top panels + Process Table
-    ProcFocus,  // Process Table dominant
-    GraphsFocus,// Top metrics & Graphs dominant
+    Balanced,    // 2 Top panels + Process Table
+    ProcFocus,   // Process Table dominant
+    GraphsFocus, // Top metrics & Graphs dominant
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -88,12 +88,35 @@ pub enum ActiveModal {
     None,
     Help,
     ProcessInspect(ProcessMetric),
-    ProcessKill { pid: u32, name: String },
-    ProcessRenice { pid: u32, name: String, current_nice: i32, target_nice: i32 },
-    UserFilter { selected_idx: usize, users: Vec<(String, usize)> },
-    ProcessSockets { pid: u32, name: String, sockets: Vec<SocketInfo> },
-    ProcessEnviron { pid: u32, name: String, vars: Vec<(String, String)> },
-    ProcessLogs { pid: u32, name: String, logs: Vec<String> },
+    ProcessKill {
+        pid: u32,
+        name: String,
+    },
+    ProcessRenice {
+        pid: u32,
+        name: String,
+        current_nice: i32,
+        target_nice: i32,
+    },
+    UserFilter {
+        selected_idx: usize,
+        users: Vec<(String, usize)>,
+    },
+    ProcessSockets {
+        pid: u32,
+        name: String,
+        sockets: Vec<SocketInfo>,
+    },
+    ProcessEnviron {
+        pid: u32,
+        name: String,
+        vars: Vec<(String, String)>,
+    },
+    ProcessLogs {
+        pid: u32,
+        name: String,
+        logs: Vec<String>,
+    },
 }
 
 /// Unified row structure rendered in the process table
@@ -448,13 +471,21 @@ impl App {
 
         groups.sort_by(|a, b| {
             let ord = match self.sort_by {
-                ProcessSortBy::Cpu => a.total_cpu.partial_cmp(&b.total_cpu).unwrap_or(std::cmp::Ordering::Equal),
+                ProcessSortBy::Cpu => a
+                    .total_cpu
+                    .partial_cmp(&b.total_cpu)
+                    .unwrap_or(std::cmp::Ordering::Equal),
                 ProcessSortBy::Memory => a.total_mem.cmp(&b.total_mem),
                 ProcessSortBy::Name => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
                 ProcessSortBy::Pid => a.items.len().cmp(&b.items.len()),
                 ProcessSortBy::User => a.name.cmp(&b.name),
-                ProcessSortBy::Disk => (a.total_read + a.total_write).cmp(&(b.total_read + b.total_write)),
-                ProcessSortBy::Surge => a.max_surge.partial_cmp(&b.max_surge).unwrap_or(std::cmp::Ordering::Equal),
+                ProcessSortBy::Disk => {
+                    (a.total_read + a.total_write).cmp(&(b.total_read + b.total_write))
+                }
+                ProcessSortBy::Surge => a
+                    .max_surge
+                    .partial_cmp(&b.max_surge)
+                    .unwrap_or(std::cmp::Ordering::Equal),
             };
             match self.sort_order {
                 SortOrder::Ascending => ord,
@@ -490,7 +521,11 @@ impl App {
             } else {
                 let is_expanded = self.expanded_groups.contains(&g.name);
                 let prefix = if is_expanded { "▼ " } else { "▶ " };
-                let status = if g.items.iter().any(|p| p.status == "Run") { "Run".to_string() } else { "Sleep".to_string() };
+                let status = if g.items.iter().any(|p| p.status == "Run") {
+                    "Run".to_string()
+                } else {
+                    "Sleep".to_string()
+                };
                 let user = g.items[0].user.clone();
                 let first_pid = g.items[0].pid;
 
@@ -525,7 +560,11 @@ impl App {
                     let mut sorted_children = g.items;
                     self.sort_processes_ref(&mut sorted_children);
                     for (idx, child) in sorted_children.iter().enumerate() {
-                        let branch = if idx == count - 1 { "  └─ " } else { "  ├─ " };
+                        let branch = if idx == count - 1 {
+                            "  └─ "
+                        } else {
+                            "  ├─ "
+                        };
                         rows.push(DisplayProcessRow {
                             pid_display: format!("{}", child.pid),
                             name: child.name.clone(),
@@ -566,7 +605,11 @@ impl App {
         let is_expanded = has_children && !is_collapsed;
 
         let branch_icon = if has_children {
-            if is_expanded { "▼ " } else { "▶ " }
+            if is_expanded {
+                "▼ "
+            } else {
+                "▶ "
+            }
         } else {
             ""
         };
@@ -607,7 +650,11 @@ impl App {
                     let sub_collapsed = self.collapsed_tree_pids.contains(&child.pid);
                     let sub_expanded = sub_has && !sub_collapsed;
                     let sub_icon = if sub_has {
-                        if sub_expanded { "▼ " } else { "▶ " }
+                        if sub_expanded {
+                            "▼ "
+                        } else {
+                            "▶ "
+                        }
                     } else {
                         ""
                     };
@@ -648,14 +695,20 @@ impl App {
     fn sort_processes(&self, list: &mut [ProcessMetric]) {
         list.sort_by(|a, b| {
             let ordering = match self.sort_by {
-                ProcessSortBy::Cpu => a.cpu_usage.partial_cmp(&b.cpu_usage).unwrap_or(std::cmp::Ordering::Equal),
+                ProcessSortBy::Cpu => a
+                    .cpu_usage
+                    .partial_cmp(&b.cpu_usage)
+                    .unwrap_or(std::cmp::Ordering::Equal),
                 ProcessSortBy::Memory => a.memory_bytes.cmp(&b.memory_bytes),
                 ProcessSortBy::Pid => a.pid.cmp(&b.pid),
                 ProcessSortBy::Name => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
                 ProcessSortBy::User => a.user.to_lowercase().cmp(&b.user.to_lowercase()),
                 ProcessSortBy::Disk => (a.disk_read_bytes_sec + a.disk_written_bytes_sec)
                     .cmp(&(b.disk_read_bytes_sec + b.disk_written_bytes_sec)),
-                ProcessSortBy::Surge => a.cpu_delta.partial_cmp(&b.cpu_delta).unwrap_or(std::cmp::Ordering::Equal),
+                ProcessSortBy::Surge => a
+                    .cpu_delta
+                    .partial_cmp(&b.cpu_delta)
+                    .unwrap_or(std::cmp::Ordering::Equal),
             };
             match self.sort_order {
                 SortOrder::Ascending => ordering,
@@ -664,17 +717,23 @@ impl App {
         });
     }
 
-    fn sort_processes_ref<'a>(&self, list: &mut [&'a ProcessMetric]) {
+    fn sort_processes_ref(&self, list: &mut [&ProcessMetric]) {
         list.sort_by(|a, b| {
             let ordering = match self.sort_by {
-                ProcessSortBy::Cpu => a.cpu_usage.partial_cmp(&b.cpu_usage).unwrap_or(std::cmp::Ordering::Equal),
+                ProcessSortBy::Cpu => a
+                    .cpu_usage
+                    .partial_cmp(&b.cpu_usage)
+                    .unwrap_or(std::cmp::Ordering::Equal),
                 ProcessSortBy::Memory => a.memory_bytes.cmp(&b.memory_bytes),
                 ProcessSortBy::Pid => a.pid.cmp(&b.pid),
                 ProcessSortBy::Name => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
                 ProcessSortBy::User => a.user.to_lowercase().cmp(&b.user.to_lowercase()),
                 ProcessSortBy::Disk => (a.disk_read_bytes_sec + a.disk_written_bytes_sec)
                     .cmp(&(b.disk_read_bytes_sec + b.disk_written_bytes_sec)),
-                ProcessSortBy::Surge => a.cpu_delta.partial_cmp(&b.cpu_delta).unwrap_or(std::cmp::Ordering::Equal),
+                ProcessSortBy::Surge => a
+                    .cpu_delta
+                    .partial_cmp(&b.cpu_delta)
+                    .unwrap_or(std::cmp::Ordering::Equal),
             };
             match self.sort_order {
                 SortOrder::Ascending => ordering,
@@ -755,8 +814,13 @@ impl App {
         } else {
             self.sort_by = sort_by;
             self.sort_order = match sort_by {
-                ProcessSortBy::Cpu | ProcessSortBy::Memory | ProcessSortBy::Disk | ProcessSortBy::Surge => SortOrder::Descending,
-                ProcessSortBy::Pid | ProcessSortBy::Name | ProcessSortBy::User => SortOrder::Ascending,
+                ProcessSortBy::Cpu
+                | ProcessSortBy::Memory
+                | ProcessSortBy::Disk
+                | ProcessSortBy::Surge => SortOrder::Descending,
+                ProcessSortBy::Pid | ProcessSortBy::Name | ProcessSortBy::User => {
+                    SortOrder::Ascending
+                }
             };
         }
         self.recompute_rows();
@@ -832,7 +896,10 @@ impl App {
                 }
             }
             if vars.is_empty() {
-                self.show_toast(format!("Environment empty or access restricted for PID {}", proc.pid));
+                self.show_toast(format!(
+                    "Environment empty or access restricted for PID {}",
+                    proc.pid
+                ));
             } else {
                 self.modal_scroll = 0;
                 self.active_modal = ActiveModal::ProcessEnviron {
@@ -968,9 +1035,20 @@ impl App {
 
         match next_iface {
             Some(ref name) => {
-                let rx_str = metrics.per_interface.get(name).map(|n| crate::theme::Theme::format_bytes_compact(n.rx_bytes_sec)).unwrap_or_else(|| "0B".into());
-                let tx_str = metrics.per_interface.get(name).map(|n| crate::theme::Theme::format_bytes_compact(n.tx_bytes_sec)).unwrap_or_else(|| "0B".into());
-                self.show_toast(format!("Network Interface: {} (↓ {}/s, ↑ {}/s)", name, rx_str, tx_str));
+                let rx_str = metrics
+                    .per_interface
+                    .get(name)
+                    .map(|n| crate::theme::Theme::format_bytes_compact(n.rx_bytes_sec))
+                    .unwrap_or_else(|| "0B".into());
+                let tx_str = metrics
+                    .per_interface
+                    .get(name)
+                    .map(|n| crate::theme::Theme::format_bytes_compact(n.tx_bytes_sec))
+                    .unwrap_or_else(|| "0B".into());
+                self.show_toast(format!(
+                    "Network Interface: {} (↓ {}/s, ↑ {}/s)",
+                    name, rx_str, tx_str
+                ));
             }
             None => {
                 self.show_toast("Network Interface: ALL (Aggregated)".into());
@@ -992,19 +1070,33 @@ impl App {
     }
 
     pub fn adjust_renice_target(&mut self, delta: i32) {
-        if let ActiveModal::ProcessRenice { ref mut target_nice, .. } = self.active_modal {
+        if let ActiveModal::ProcessRenice {
+            ref mut target_nice,
+            ..
+        } = self.active_modal
+        {
             *target_nice = (*target_nice + delta).clamp(-20, 19);
         }
     }
 
     pub fn set_renice_preset(&mut self, preset: i32) {
-        if let ActiveModal::ProcessRenice { ref mut target_nice, .. } = self.active_modal {
+        if let ActiveModal::ProcessRenice {
+            ref mut target_nice,
+            ..
+        } = self.active_modal
+        {
             *target_nice = preset.clamp(-20, 19);
         }
     }
 
     pub fn apply_renice(&mut self) {
-        if let ActiveModal::ProcessRenice { pid, ref name, target_nice, .. } = self.active_modal {
+        if let ActiveModal::ProcessRenice {
+            pid,
+            ref name,
+            target_nice,
+            ..
+        } = self.active_modal
+        {
             let res = Command::new("renice")
                 .arg("-n")
                 .arg(target_nice.to_string())
@@ -1013,7 +1105,10 @@ impl App {
 
             match res {
                 Ok(out) if out.status.success() => {
-                    self.show_toast(format!("✓ Reniced PID {} ({}) to nice {}", pid, name, target_nice));
+                    self.show_toast(format!(
+                        "✓ Reniced PID {} ({}) to nice {}",
+                        pid, name, target_nice
+                    ));
                 }
                 Ok(out) => {
                     let err = String::from_utf8_lossy(&out.stderr);
@@ -1038,7 +1133,10 @@ impl App {
 
             match res {
                 Ok(out) if out.status.success() => {
-                    self.show_toast(format!("✓ Reniced PID {} ({}) to {}", proc.pid, proc.name, new_nice));
+                    self.show_toast(format!(
+                        "✓ Reniced PID {} ({}) to {}",
+                        proc.pid, proc.name, new_nice
+                    ));
                 }
                 Ok(out) => {
                     let err = String::from_utf8_lossy(&out.stderr);
@@ -1062,10 +1160,14 @@ impl App {
         }
 
         let mut users: Vec<(String, usize)> = user_counts.into_iter().collect();
-        users.sort_by(|a, b| b.1.cmp(&a.1));
+        users.sort_by_key(|a| std::cmp::Reverse(a.1));
 
         let current_idx = if let Some(ref current) = self.user_filter {
-            users.iter().position(|(u, _)| u == current).map(|i| i + 1).unwrap_or(0)
+            users
+                .iter()
+                .position(|(u, _)| u == current)
+                .map(|i| i + 1)
+                .unwrap_or(0)
         } else {
             0
         };
@@ -1176,7 +1278,11 @@ impl App {
         if next == 100 {
             self.show_toast("⚡ Sampling: 100ms (MAX SPEED)".into());
         } else {
-            self.show_toast(format!("Sampling: {}ms ({:.2}s)", next, next as f32 / 1000.0));
+            self.show_toast(format!(
+                "Sampling: {}ms ({:.2}s)",
+                next,
+                next as f32 / 1000.0
+            ));
         }
     }
 
@@ -1190,7 +1296,11 @@ impl App {
             _ => 5000,
         };
         self.sample_interval_ms.store(next, Ordering::Relaxed);
-        self.show_toast(format!("Sampling: {}ms ({:.2}s)", next, next as f32 / 1000.0));
+        self.show_toast(format!(
+            "Sampling: {}ms ({:.2}s)",
+            next,
+            next as f32 / 1000.0
+        ));
     }
 
     pub fn show_toast(&mut self, message: String) {

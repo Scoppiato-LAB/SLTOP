@@ -82,49 +82,49 @@ impl Theme {
                 coral: Color::Rgb(240, 75, 95),
             },
             ThemeMode::CatppuccinMocha => ThemeColors {
-                bg: Color::Rgb(30, 30, 46),          // Mocha Base
-                surface: Color::Rgb(24, 24, 37),     // Mantle
-                card_border: Color::Rgb(69, 71, 90), // Surface1
+                bg: Color::Rgb(30, 30, 46),                   // Mocha Base
+                surface: Color::Rgb(24, 24, 37),              // Mantle
+                card_border: Color::Rgb(69, 71, 90),          // Surface1
                 card_border_focus: Color::Rgb(203, 166, 247), // Mauve
-                selection_bg: Color::Rgb(49, 50, 68), // Surface0
+                selection_bg: Color::Rgb(49, 50, 68),         // Surface0
                 bar_empty: Color::Rgb(49, 50, 68),
                 text_primary: Color::Rgb(205, 214, 244), // Text
                 text_secondary: Color::Rgb(186, 194, 222), // Subtext1
-                text_muted: Color::Rgb(108, 112, 134),  // Overlay0
-                cyan: Color::Rgb(137, 220, 235),      // Sky
-                blue: Color::Rgb(137, 180, 250),      // Blue
-                lavender: Color::Rgb(203, 166, 247),  // Mauve
-                plum: Color::Rgb(245, 194, 231),      // Pink
-                teal: Color::Rgb(148, 226, 213),      // Teal
-                mint: Color::Rgb(166, 227, 161),      // Green
-                sky: Color::Rgb(116, 199, 236),       // Sapphire
-                amber: Color::Rgb(249, 226, 175),     // Yellow
-                orange: Color::Rgb(250, 179, 135),    // Peach
-                coral: Color::Rgb(243, 139, 168),     // Red
+                text_muted: Color::Rgb(108, 112, 134),   // Overlay0
+                cyan: Color::Rgb(137, 220, 235),         // Sky
+                blue: Color::Rgb(137, 180, 250),         // Blue
+                lavender: Color::Rgb(203, 166, 247),     // Mauve
+                plum: Color::Rgb(245, 194, 231),         // Pink
+                teal: Color::Rgb(148, 226, 213),         // Teal
+                mint: Color::Rgb(166, 227, 161),         // Green
+                sky: Color::Rgb(116, 199, 236),          // Sapphire
+                amber: Color::Rgb(249, 226, 175),        // Yellow
+                orange: Color::Rgb(250, 179, 135),       // Peach
+                coral: Color::Rgb(243, 139, 168),        // Red
             },
             ThemeMode::GruvboxDark => ThemeColors {
-                bg: Color::Rgb(40, 40, 40),          // dark0
-                surface: Color::Rgb(29, 32, 33),     // dark0_hard
-                card_border: Color::Rgb(80, 73, 69), // dark3
+                bg: Color::Rgb(40, 40, 40),                  // dark0
+                surface: Color::Rgb(29, 32, 33),             // dark0_hard
+                card_border: Color::Rgb(80, 73, 69),         // dark3
                 card_border_focus: Color::Rgb(250, 189, 47), // yellow
-                selection_bg: Color::Rgb(60, 56, 54), // dark1
+                selection_bg: Color::Rgb(60, 56, 54),        // dark1
                 bar_empty: Color::Rgb(50, 48, 47),
                 text_primary: Color::Rgb(235, 219, 178), // light1
                 text_secondary: Color::Rgb(213, 196, 161), // light2
-                text_muted: Color::Rgb(146, 131, 116),  // gray
-                cyan: Color::Rgb(142, 192, 124),      // aqua
-                blue: Color::Rgb(131, 165, 152),      // blue
-                lavender: Color::Rgb(211, 134, 155),  // purple
+                text_muted: Color::Rgb(146, 131, 116),   // gray
+                cyan: Color::Rgb(142, 192, 124),         // aqua
+                blue: Color::Rgb(131, 165, 152),         // blue
+                lavender: Color::Rgb(211, 134, 155),     // purple
                 plum: Color::Rgb(177, 98, 134),
                 teal: Color::Rgb(104, 157, 106),
-                mint: Color::Rgb(184, 187, 38),       // green
+                mint: Color::Rgb(184, 187, 38), // green
                 sky: Color::Rgb(131, 165, 152),
-                amber: Color::Rgb(250, 189, 47),      // yellow
-                orange: Color::Rgb(254, 128, 25),     // orange
-                coral: Color::Rgb(251, 73, 52),       // red
+                amber: Color::Rgb(250, 189, 47),  // yellow
+                orange: Color::Rgb(254, 128, 25), // orange
+                coral: Color::Rgb(251, 73, 52),   // red
             },
             ThemeMode::NordicFrost => ThemeColors {
-                bg: Color::Rgb(46, 52, 64),          // nord0
+                bg: Color::Rgb(46, 52, 64), // nord0
                 surface: Color::Rgb(36, 41, 51),
                 card_border: Color::Rgb(76, 86, 106), // nord3
                 card_border_focus: Color::Rgb(136, 192, 208), // nord8 (frost)
@@ -133,16 +133,16 @@ impl Theme {
                 text_primary: Color::Rgb(236, 239, 244), // nord6
                 text_secondary: Color::Rgb(216, 222, 233), // nord4
                 text_muted: Color::Rgb(140, 155, 180),
-                cyan: Color::Rgb(136, 192, 208),      // nord8
-                blue: Color::Rgb(129, 161, 193),      // nord9
-                lavender: Color::Rgb(180, 142, 173),  // nord15
+                cyan: Color::Rgb(136, 192, 208),     // nord8
+                blue: Color::Rgb(129, 161, 193),     // nord9
+                lavender: Color::Rgb(180, 142, 173), // nord15
                 plum: Color::Rgb(165, 130, 160),
-                teal: Color::Rgb(143, 188, 187),      // nord7
-                mint: Color::Rgb(163, 190, 140),      // nord14
+                teal: Color::Rgb(143, 188, 187), // nord7
+                mint: Color::Rgb(163, 190, 140), // nord14
                 sky: Color::Rgb(136, 192, 208),
-                amber: Color::Rgb(235, 203, 139),     // nord13
-                orange: Color::Rgb(208, 135, 112),    // nord12
-                coral: Color::Rgb(191, 97, 106),      // nord11
+                amber: Color::Rgb(235, 203, 139),  // nord13
+                orange: Color::Rgb(208, 135, 112), // nord12
+                coral: Color::Rgb(191, 97, 106),   // nord11
             },
             ThemeMode::MonokaiMinimal => ThemeColors {
                 bg: Color::Rgb(18, 18, 18),
@@ -204,7 +204,12 @@ impl Theme {
     }
 
     /// Progress bar with fractional blocks
-    pub fn render_bar_spans(p: &ThemeColors, ratio: f32, width: usize, custom_color: Option<Color>) -> Vec<Span<'static>> {
+    pub fn render_bar_spans(
+        p: &ThemeColors,
+        ratio: f32,
+        width: usize,
+        custom_color: Option<Color>,
+    ) -> Vec<Span<'static>> {
         let clamped = ratio.clamp(0.0, 1.0);
         let total_chars = (clamped * width as f32).max(0.0);
         let full_blocks = (total_chars.floor() as usize).min(width);
@@ -230,11 +235,12 @@ impl Theme {
 
         let has_frac = frac_char != ' ' && full_blocks < width;
         let empty = width.saturating_sub(full_blocks + if has_frac { 1 } else { 0 });
-        let color = custom_color.unwrap_or_else(|| Self::usage_color_with_palette(p, clamped * 100.0));
+        let color =
+            custom_color.unwrap_or_else(|| Self::usage_color_with_palette(p, clamped * 100.0));
 
         let mut spans = Vec::with_capacity(5);
         spans.push(Span::styled("[", Style::default().fg(p.text_muted)));
-        
+
         let mut filled = "█".repeat(full_blocks);
         if has_frac {
             filled.push(frac_char);
@@ -243,14 +249,22 @@ impl Theme {
             spans.push(Span::styled(filled, Style::default().fg(color)));
         }
         if empty > 0 {
-            spans.push(Span::styled("░".repeat(empty), Style::default().fg(p.bar_empty)));
+            spans.push(Span::styled(
+                "░".repeat(empty),
+                Style::default().fg(p.bar_empty),
+            ));
         }
         spans.push(Span::styled("]", Style::default().fg(p.text_muted)));
         spans
     }
 
     /// Compact progress bar for table cells
-    pub fn micro_bar_spans(p: &ThemeColors, percent: f32, width: usize, custom_color: Option<Color>) -> Vec<Span<'static>> {
+    pub fn micro_bar_spans(
+        p: &ThemeColors,
+        percent: f32,
+        width: usize,
+        custom_color: Option<Color>,
+    ) -> Vec<Span<'static>> {
         let ratio = (percent / 100.0).clamp(0.0, 1.0);
         let total_chars = (ratio * width as f32).max(0.0);
         let full_blocks = (total_chars.floor() as usize).min(width);
@@ -280,7 +294,7 @@ impl Theme {
 
         let mut spans = Vec::with_capacity(5);
         spans.push(Span::styled("[", Style::default().fg(p.bar_empty)));
-        
+
         let mut filled = "█".repeat(full_blocks);
         if has_frac {
             filled.push(frac_char);
@@ -289,7 +303,10 @@ impl Theme {
             spans.push(Span::styled(filled, Style::default().fg(color)));
         }
         if empty > 0 {
-            spans.push(Span::styled("░".repeat(empty), Style::default().fg(p.bar_empty)));
+            spans.push(Span::styled(
+                "░".repeat(empty),
+                Style::default().fg(p.bar_empty),
+            ));
         }
         spans.push(Span::styled("]", Style::default().fg(p.bar_empty)));
         spans

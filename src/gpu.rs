@@ -153,12 +153,21 @@ impl GpuCollector {
 
             let (brand, name) = match driver_name.as_str() {
                 "amdgpu" | "radeon" => ("AMD".to_string(), "AMD Radeon Graphics".to_string()),
-                "i915" | "xe" => ("Intel".to_string(), "Intel HD/Iris/Arc Graphics".to_string()),
+                "i915" | "xe" => (
+                    "Intel".to_string(),
+                    "Intel HD/Iris/Arc Graphics".to_string(),
+                ),
                 "nouveau" => ("NVIDIA".to_string(), "NVIDIA (Nouveau DRM)".to_string()),
                 "virtio-gpu" => ("VirtIO".to_string(), "VirtIO GPU Accelerator".to_string()),
-                "bochs-drm" => ("Bochs".to_string(), "Virtual Display (bochs-drm)".to_string()),
+                "bochs-drm" => (
+                    "Bochs".to_string(),
+                    "Virtual Display (bochs-drm)".to_string(),
+                ),
                 other if !other.is_empty() => (other.to_string(), format!("DRM Device ({other})")),
-                _ => ("DRM".to_string(), format!("DRM Display Adapter ({file_name})")),
+                _ => (
+                    "DRM".to_string(),
+                    format!("DRM Display Adapter ({file_name})"),
+                ),
             };
 
             return Some(GpuMetric {
@@ -173,5 +182,11 @@ impl GpuCollector {
         }
 
         None
+    }
+}
+
+impl Default for GpuCollector {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -13,21 +13,45 @@ pub fn dump_json(metrics: &SystemMetrics) -> String {
     out.push_str("{\n");
     out.push_str(&format!("  \"timestamp\": {},\n", now_ts));
     out.push_str("  \"system\": {\n");
-    out.push_str(&format!("    \"host_name\": \"{}\",\n", escape_json(&metrics.host_name)));
-    out.push_str(&format!("    \"os_name\": \"{}\",\n", escape_json(&metrics.os_name)));
-    out.push_str(&format!("    \"kernel\": \"{}\",\n", escape_json(&metrics.kernel_version)));
-    out.push_str(&format!("    \"uptime_seconds\": {},\n", metrics.uptime_seconds));
+    out.push_str(&format!(
+        "    \"host_name\": \"{}\",\n",
+        escape_json(&metrics.host_name)
+    ));
+    out.push_str(&format!(
+        "    \"os_name\": \"{}\",\n",
+        escape_json(&metrics.os_name)
+    ));
+    out.push_str(&format!(
+        "    \"kernel\": \"{}\",\n",
+        escape_json(&metrics.kernel_version)
+    ));
+    out.push_str(&format!(
+        "    \"uptime_seconds\": {},\n",
+        metrics.uptime_seconds
+    ));
     out.push_str(&format!(
         "    \"load_avg\": [{:.2}, {:.2}, {:.2}],\n",
         metrics.load_avg.0, metrics.load_avg.1, metrics.load_avg.2
     ));
-    out.push_str(&format!("    \"tasks\": {{\"total\": {}, \"running\": {}, \"sleeping\": {}}},\n", metrics.total_tasks, metrics.running_tasks, metrics.sleeping_tasks));
+    out.push_str(&format!(
+        "    \"tasks\": {{\"total\": {}, \"running\": {}, \"sleeping\": {}}},\n",
+        metrics.total_tasks, metrics.running_tasks, metrics.sleeping_tasks
+    ));
 
     // CPU telemetry
     out.push_str("    \"cpu\": {\n");
-    out.push_str(&format!("      \"model\": \"{}\",\n", escape_json(&metrics.cpu_model)));
-    out.push_str(&format!("      \"arch\": \"{}\",\n", escape_json(&metrics.cpu_arch)));
-    out.push_str(&format!("      \"global_usage_percent\": {:.1},\n", metrics.cpu_global_usage));
+    out.push_str(&format!(
+        "      \"model\": \"{}\",\n",
+        escape_json(&metrics.cpu_model)
+    ));
+    out.push_str(&format!(
+        "      \"arch\": \"{}\",\n",
+        escape_json(&metrics.cpu_arch)
+    ));
+    out.push_str(&format!(
+        "      \"global_usage_percent\": {:.1},\n",
+        metrics.cpu_global_usage
+    ));
     if let Some(t) = metrics.cpu_temp_celsius {
         out.push_str(&format!("      \"temperature_celsius\": {:.1},\n", t));
     } else {
@@ -35,7 +59,11 @@ pub fn dump_json(metrics: &SystemMetrics) -> String {
     }
     out.push_str("      \"cores\": [\n");
     for (i, c) in metrics.cpu_cores.iter().enumerate() {
-        let comma = if i + 1 == metrics.cpu_cores.len() { "" } else { "," };
+        let comma = if i + 1 == metrics.cpu_cores.len() {
+            ""
+        } else {
+            ","
+        };
         out.push_str(&format!(
             "        {{\"id\": {}, \"name\": \"{}\", \"usage_percent\": {:.1}, \"freq_mhz\": {}}}{}\n",
             c.id, escape_json(&c.name), c.usage, c.frequency_mhz, comma
@@ -49,8 +77,14 @@ pub fn dump_json(metrics: &SystemMetrics) -> String {
     out.push_str(&format!("      \"total_bytes\": {},\n", metrics.mem_total));
     out.push_str(&format!("      \"used_bytes\": {},\n", metrics.mem_used));
     out.push_str(&format!("      \"free_bytes\": {},\n", metrics.mem_free));
-    out.push_str(&format!("      \"available_bytes\": {},\n", metrics.mem_available));
-    out.push_str(&format!("      \"usage_percent\": {:.1}\n", metrics.mem_percent));
+    out.push_str(&format!(
+        "      \"available_bytes\": {},\n",
+        metrics.mem_available
+    ));
+    out.push_str(&format!(
+        "      \"usage_percent\": {:.1}\n",
+        metrics.mem_percent
+    ));
     out.push_str("    },\n");
 
     // Swap
@@ -58,14 +92,23 @@ pub fn dump_json(metrics: &SystemMetrics) -> String {
     out.push_str(&format!("      \"total_bytes\": {},\n", metrics.swap_total));
     out.push_str(&format!("      \"used_bytes\": {},\n", metrics.swap_used));
     out.push_str(&format!("      \"free_bytes\": {},\n", metrics.swap_free));
-    out.push_str(&format!("      \"usage_percent\": {:.1}\n", metrics.swap_percent));
+    out.push_str(&format!(
+        "      \"usage_percent\": {:.1}\n",
+        metrics.swap_percent
+    ));
     out.push_str("    },\n");
 
     // GPU
     if let Some(ref gpu) = metrics.gpu {
         out.push_str("    \"gpu\": {\n");
-        out.push_str(&format!("      \"name\": \"{}\",\n", escape_json(&gpu.name)));
-        out.push_str(&format!("      \"brand\": \"{}\",\n", escape_json(&gpu.brand)));
+        out.push_str(&format!(
+            "      \"name\": \"{}\",\n",
+            escape_json(&gpu.name)
+        ));
+        out.push_str(&format!(
+            "      \"brand\": \"{}\",\n",
+            escape_json(&gpu.brand)
+        ));
         if let Some(u) = gpu.usage_percent {
             out.push_str(&format!("      \"usage_percent\": {:.1},\n", u));
         } else {
@@ -92,16 +135,41 @@ pub fn dump_json(metrics: &SystemMetrics) -> String {
 
     // Network
     out.push_str("    \"network\": {\n");
-    out.push_str(&format!("      \"selected_interface\": \"{}\",\n", escape_json(&metrics.network.interface_name)));
-    out.push_str(&format!("      \"rx_bytes_sec\": {},\n", metrics.network.rx_bytes_sec));
-    out.push_str(&format!("      \"tx_bytes_sec\": {},\n", metrics.network.tx_bytes_sec));
-    out.push_str(&format!("      \"peak_rx_sec\": {},\n", metrics.network.peak_rx_sec));
-    out.push_str(&format!("      \"peak_tx_sec\": {},\n", metrics.network.peak_tx_sec));
-    out.push_str(&format!("      \"total_rx_bytes\": {},\n", metrics.network.total_rx_bytes));
-    out.push_str(&format!("      \"total_tx_bytes\": {},\n", metrics.network.total_tx_bytes));
+    out.push_str(&format!(
+        "      \"selected_interface\": \"{}\",\n",
+        escape_json(&metrics.network.interface_name)
+    ));
+    out.push_str(&format!(
+        "      \"rx_bytes_sec\": {},\n",
+        metrics.network.rx_bytes_sec
+    ));
+    out.push_str(&format!(
+        "      \"tx_bytes_sec\": {},\n",
+        metrics.network.tx_bytes_sec
+    ));
+    out.push_str(&format!(
+        "      \"peak_rx_sec\": {},\n",
+        metrics.network.peak_rx_sec
+    ));
+    out.push_str(&format!(
+        "      \"peak_tx_sec\": {},\n",
+        metrics.network.peak_tx_sec
+    ));
+    out.push_str(&format!(
+        "      \"total_rx_bytes\": {},\n",
+        metrics.network.total_rx_bytes
+    ));
+    out.push_str(&format!(
+        "      \"total_tx_bytes\": {},\n",
+        metrics.network.total_tx_bytes
+    ));
     out.push_str("      \"interfaces\": [\n");
     for (i, iface) in metrics.interfaces.iter().enumerate() {
-        let comma = if i + 1 == metrics.interfaces.len() { "" } else { "," };
+        let comma = if i + 1 == metrics.interfaces.len() {
+            ""
+        } else {
+            ","
+        };
         out.push_str(&format!(
             "        {{\"name\": \"{}\", \"rx_sec\": {}, \"tx_sec\": {}, \"rx_total\": {}, \"tx_total\": {}}}{}\n",
             escape_json(&iface.name), iface.rx_bytes_sec, iface.tx_bytes_sec, iface.total_rx_bytes, iface.total_tx_bytes, comma
@@ -113,7 +181,11 @@ pub fn dump_json(metrics: &SystemMetrics) -> String {
     // Disks
     out.push_str("    \"disks\": [\n");
     for (i, d) in metrics.disks.iter().enumerate() {
-        let comma = if i + 1 == metrics.disks.len() { "" } else { "," };
+        let comma = if i + 1 == metrics.disks.len() {
+            ""
+        } else {
+            ","
+        };
         out.push_str(&format!(
             "      {{\"mount\": \"{}\", \"fs\": \"{}\", \"total_bytes\": {}, \"used_bytes\": {}, \"percent\": {:.1}}}{}\n",
             escape_json(&d.mount_point), escape_json(&d.fs_type), d.total_bytes, d.used_bytes, d.used_percent, comma
@@ -125,7 +197,11 @@ pub fn dump_json(metrics: &SystemMetrics) -> String {
     // Processes
     out.push_str("  \"processes\": [\n");
     for (i, p) in metrics.processes.iter().enumerate() {
-        let comma = if i + 1 == metrics.processes.len() { "" } else { "," };
+        let comma = if i + 1 == metrics.processes.len() {
+            ""
+        } else {
+            ","
+        };
         out.push_str(&format!(
             "    {{\"pid\": {}, \"name\": \"{}\", \"user\": \"{}\", \"status\": \"{}\", \"cpu_percent\": {:.1}, \"mem_bytes\": {}, \"mem_percent\": {:.1}, \"disk_read_sec\": {}, \"disk_write_sec\": {}, \"domain\": \"{}\", \"nice\": {}}}{}\n",
             p.pid, escape_json(&p.name), escape_json(&p.user), escape_json(&p.status), p.cpu_usage, p.memory_bytes, p.memory_percent, p.disk_read_bytes_sec, p.disk_written_bytes_sec, escape_json(&p.domain.label()), p.nice, comma
@@ -141,11 +217,30 @@ pub fn dump_json(metrics: &SystemMetrics) -> String {
 pub fn dump_snapshot_text(metrics: &SystemMetrics) -> String {
     let mut out = String::with_capacity(4096);
     out.push_str("=== sltop System Snapshot | Scoppiato LAB (https://scoppiato.it) ===\n");
-    out.push_str(&format!("Host: {} | OS: {} | Kernel: {}\n", metrics.host_name, metrics.os_name, metrics.kernel_version));
-    out.push_str(&format!("Uptime: {}s | Load: {:.2}, {:.2}, {:.2}\n", metrics.uptime_seconds, metrics.load_avg.0, metrics.load_avg.1, metrics.load_avg.2));
-    out.push_str(&format!("CPU: {} ({} Cores) - {:.1}%\n", metrics.cpu_model, metrics.cpu_cores.len(), metrics.cpu_global_usage));
-    out.push_str(&format!("RAM: {:.1}% ({:.2} GiB / {:.2} GiB)\n", metrics.mem_percent, metrics.mem_used as f64 / 1073741824.0, metrics.mem_total as f64 / 1073741824.0));
-    out.push_str(&format!("Network ({}): ↓ {}/s | ↑ {}/s\n", metrics.network.interface_name, metrics.network.rx_bytes_sec, metrics.network.tx_bytes_sec));
+    out.push_str(&format!(
+        "Host: {} | OS: {} | Kernel: {}\n",
+        metrics.host_name, metrics.os_name, metrics.kernel_version
+    ));
+    out.push_str(&format!(
+        "Uptime: {}s | Load: {:.2}, {:.2}, {:.2}\n",
+        metrics.uptime_seconds, metrics.load_avg.0, metrics.load_avg.1, metrics.load_avg.2
+    ));
+    out.push_str(&format!(
+        "CPU: {} ({} Cores) - {:.1}%\n",
+        metrics.cpu_model,
+        metrics.cpu_cores.len(),
+        metrics.cpu_global_usage
+    ));
+    out.push_str(&format!(
+        "RAM: {:.1}% ({:.2} GiB / {:.2} GiB)\n",
+        metrics.mem_percent,
+        metrics.mem_used as f64 / 1073741824.0,
+        metrics.mem_total as f64 / 1073741824.0
+    ));
+    out.push_str(&format!(
+        "Network ({}): ↓ {}/s | ↑ {}/s\n",
+        metrics.network.interface_name, metrics.network.rx_bytes_sec, metrics.network.tx_bytes_sec
+    ));
     if let Some(ref g) = metrics.gpu {
         out.push_str(&format!("GPU: {} ({})\n", g.name, g.brand));
     }
@@ -153,9 +248,16 @@ pub fn dump_snapshot_text(metrics: &SystemMetrics) -> String {
     out.push_str("PID     USER       CPU%   MEM%    COMMAND\n");
 
     let mut procs = metrics.processes.clone();
-    procs.sort_by(|a, b| b.cpu_usage.partial_cmp(&a.cpu_usage).unwrap_or(std::cmp::Ordering::Equal));
+    procs.sort_by(|a, b| {
+        b.cpu_usage
+            .partial_cmp(&a.cpu_usage)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     for p in procs.iter().take(15) {
-        out.push_str(&format!("{:<7} {:<10} {:>5.1}% {:>5.1}%   {}\n", p.pid, p.user, p.cpu_usage, p.memory_percent, p.name));
+        out.push_str(&format!(
+            "{:<7} {:<10} {:>5.1}% {:>5.1}%   {}\n",
+            p.pid, p.user, p.cpu_usage, p.memory_percent, p.name
+        ));
     }
 
     out

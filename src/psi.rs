@@ -33,7 +33,7 @@ impl PsiMetrics {
         let file = File::open(path).ok()?;
         let reader = BufReader::new(file);
 
-        for line in reader.lines().flatten() {
+        for line in reader.lines().map_while(Result::ok) {
             if line.starts_with(line_prefix) {
                 // Example: some avg10=11.14 avg60=12.63 avg300=14.55 total=20121786832
                 for part in line.split_whitespace() {

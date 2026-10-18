@@ -5,9 +5,7 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{
-        Block, BorderType, Borders, Cell, Clear, Paragraph, Row, Table, Wrap,
-    },
+    widgets::{Block, BorderType, Borders, Cell, Clear, Paragraph, Row, Table, Wrap},
     Frame,
 };
 
@@ -42,21 +40,38 @@ pub fn render(frame: &mut Frame, app: &mut App) {
         ActiveModal::Help => render_help_modal(frame, size, &p),
         ActiveModal::ProcessInspect(ref proc) => render_inspect_modal(frame, size, proc, &p),
         ActiveModal::ProcessKill { pid, ref name } => render_kill_modal(frame, size, pid, name, &p),
-        ActiveModal::ProcessRenice { pid, ref name, current_nice, target_nice } => {
-            render_renice_modal(frame, size, pid, name, current_nice, target_nice, &p)
-        }
-        ActiveModal::UserFilter { selected_idx, ref users } => {
-            render_user_filter_modal(frame, size, selected_idx, users, app.user_filter.as_deref(), &p)
-        }
-        ActiveModal::ProcessSockets { pid, ref name, ref sockets } => {
-            render_sockets_modal(frame, size, pid, name, sockets, app.modal_scroll, &p)
-        }
-        ActiveModal::ProcessEnviron { pid, ref name, ref vars } => {
-            render_environ_modal(frame, size, pid, name, vars, app.modal_scroll, &p)
-        }
-        ActiveModal::ProcessLogs { pid, ref name, ref logs } => {
-            render_logs_modal(frame, size, pid, name, logs, app.modal_scroll, &p)
-        }
+        ActiveModal::ProcessRenice {
+            pid,
+            ref name,
+            current_nice,
+            target_nice,
+        } => render_renice_modal(frame, size, pid, name, current_nice, target_nice, &p),
+        ActiveModal::UserFilter {
+            selected_idx,
+            ref users,
+        } => render_user_filter_modal(
+            frame,
+            size,
+            selected_idx,
+            users,
+            app.user_filter.as_deref(),
+            &p,
+        ),
+        ActiveModal::ProcessSockets {
+            pid,
+            ref name,
+            ref sockets,
+        } => render_sockets_modal(frame, size, pid, name, sockets, app.modal_scroll, &p),
+        ActiveModal::ProcessEnviron {
+            pid,
+            ref name,
+            ref vars,
+        } => render_environ_modal(frame, size, pid, name, vars, app.modal_scroll, &p),
+        ActiveModal::ProcessLogs {
+            pid,
+            ref name,
+            ref logs,
+        } => render_logs_modal(frame, size, pid, name, logs, app.modal_scroll, &p),
         ActiveModal::None => {}
     }
 }
@@ -76,8 +91,14 @@ fn render_command_strip(frame: &mut Frame, area: Rect, app: &App, p: &ThemeColor
         return;
     };
 
-    let rate = app.sample_interval_ms.load(std::sync::atomic::Ordering::Relaxed);
-    let rate_color = if rate <= 100 { p.cyan } else { p.text_secondary };
+    let rate = app
+        .sample_interval_ms
+        .load(std::sync::atomic::Ordering::Relaxed);
+    let rate_color = if rate <= 100 {
+        p.cyan
+    } else {
+        p.text_secondary
+    };
 
     let clean_os = if metrics.os_name.contains("Debian") {
         "Debian"
@@ -91,7 +112,7 @@ fn render_command_strip(frame: &mut Frame, area: Rect, app: &App, p: &ThemeColor
 
     let short_kernel = metrics
         .kernel_version
-        .split(|c| c == '+' || c == '-')
+        .split(['+', '-'])
         .next()
         .unwrap_or(&metrics.kernel_version);
 
@@ -108,36 +129,74 @@ fn render_command_strip(frame: &mut Frame, area: Rect, app: &App, p: &ThemeColor
     // Col 1: System Identity, Theme, Uptime & Surge Detector
     let lab_green = Color::Rgb(0, 230, 118);
     let mut left_spans = vec![
-        Span::styled(" sltop ", Style::default().bg(p.blue).fg(p.bg).add_modifier(Modifier::BOLD)),
-        Span::styled(" Scoppiato LAB ", Style::default().bg(lab_green).fg(Color::Rgb(10, 16, 20)).add_modifier(Modifier::BOLD)),
-        Span::styled(format!(" [{}]", app.theme_mode.name()), Style::default().fg(p.lavender)),
+        Span::styled(
+            " sltop ",
+            Style::default()
+                .bg(p.blue)
+                .fg(p.bg)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            " Scoppiato LAB ",
+            Style::default()
+                .bg(lab_green)
+                .fg(Color::Rgb(10, 16, 20))
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!(" [{}]", app.theme_mode.name()),
+            Style::default().fg(p.lavender),
+        ),
         Span::styled(" Host: ", Style::default().fg(p.text_muted)),
-        Span::styled(&metrics.host_name, Style::default().fg(p.text_primary).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            &metrics.host_name,
+            Style::default()
+                .fg(p.text_primary)
+                .add_modifier(Modifier::BOLD),
+        ),
     ];
 
     if let Some(ref iface) = app.selected_interface {
-        left_spans.push(Span::styled(format!(" [Net: {}]", iface), Style::default().fg(p.mint).add_modifier(Modifier::BOLD)));
+        left_spans.push(Span::styled(
+            format!(" [Net: {}]", iface),
+            Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+        ));
     }
     if let Some(ref u) = app.user_filter {
-        left_spans.push(Span::styled(format!(" [User: {}]", u), Style::default().fg(p.amber).add_modifier(Modifier::BOLD)));
+        left_spans.push(Span::styled(
+            format!(" [User: {}]", u),
+            Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+        ));
     }
 
     if left_width >= 80 {
-        left_spans.push(Span::styled(format!(" ({clean_os})"), Style::default().fg(p.text_secondary)));
+        left_spans.push(Span::styled(
+            format!(" ({clean_os})"),
+            Style::default().fg(p.text_secondary),
+        ));
     }
 
     left_spans.push(Span::styled(" │ Up: ", Style::default().fg(p.text_muted)));
-    left_spans.push(Span::styled(Theme::format_duration(metrics.uptime_seconds), Style::default().fg(p.mint)));
+    left_spans.push(Span::styled(
+        Theme::format_duration(metrics.uptime_seconds),
+        Style::default().fg(p.mint),
+    ));
 
     if let Some((ref surge_name, surge_pid, surge_delta)) = metrics.surge_process {
         if left_width >= 92 {
-            left_spans.push(Span::styled(" │ ⚡ Surge: ", Style::default().fg(p.amber).add_modifier(Modifier::BOLD)));
+            left_spans.push(Span::styled(
+                " │ ⚡ Surge: ",
+                Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+            ));
             left_spans.push(Span::styled(
                 format!("{surge_name} ({surge_pid}) +{surge_delta:.0}%"),
                 Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
             ));
         } else if left_width >= 65 {
-            left_spans.push(Span::styled(" │ ⚡ ", Style::default().fg(p.amber).add_modifier(Modifier::BOLD)));
+            left_spans.push(Span::styled(
+                " │ ⚡ ",
+                Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+            ));
             left_spans.push(Span::styled(
                 format!("{surge_name} +{surge_delta:.0}%"),
                 Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
@@ -150,15 +209,35 @@ fn render_command_strip(frame: &mut Frame, area: Rect, app: &App, p: &ThemeColor
     // Col 2: Load, Kernel, Sampling Rate (Right Aligned)
     let right_line = Line::from(vec![
         Span::styled("Load: ", Style::default().fg(p.text_muted)),
-        Span::styled(format!("{:.2} ", metrics.load_avg.0), Style::default().fg(p.text_primary).add_modifier(Modifier::BOLD)),
-        Span::styled(format!("{:.2} ", metrics.load_avg.1), Style::default().fg(p.text_secondary)),
-        Span::styled(format!("{:.2}", metrics.load_avg.2), Style::default().fg(p.text_muted)),
+        Span::styled(
+            format!("{:.2} ", metrics.load_avg.0),
+            Style::default()
+                .fg(p.text_primary)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("{:.2} ", metrics.load_avg.1),
+            Style::default().fg(p.text_secondary),
+        ),
+        Span::styled(
+            format!("{:.2}", metrics.load_avg.2),
+            Style::default().fg(p.text_muted),
+        ),
         Span::styled(" │ ", Style::default().fg(p.text_muted)),
         Span::styled(short_kernel, Style::default().fg(p.text_secondary)),
-        Span::styled(" │ ⚡ ", Style::default().fg(rate_color).add_modifier(Modifier::BOLD)),
-        Span::styled(format!("{}ms", rate), Style::default().fg(rate_color).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            " │ ⚡ ",
+            Style::default().fg(rate_color).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("{}ms", rate),
+            Style::default().fg(rate_color).add_modifier(Modifier::BOLD),
+        ),
     ]);
-    frame.render_widget(Paragraph::new(right_line).alignment(Alignment::Right), cols[1]);
+    frame.render_widget(
+        Paragraph::new(right_line).alignment(Alignment::Right),
+        cols[1],
+    );
 }
 
 /// Hardware overview panel:
@@ -177,7 +256,7 @@ fn render_hardware_panels(frame: &mut Frame, area: Rect, app: &App, p: &ThemeCol
 
     let disk_count = metrics.disks.len();
     let core_count = metrics.cpu_cores.len();
-    let core_rows = ((core_count + 1) / 2).clamp(1, 4) as u16;
+    let core_rows = core_count.div_ceil(2).clamp(1, 4) as u16;
 
     // Harmonize Gauges height (cores + storage):
     let needed_gauges = (3 + disk_count as u16).max(1 + core_rows) + 2;
@@ -186,8 +265,8 @@ fn render_hardware_panels(frame: &mut Frame, area: Rect, app: &App, p: &ThemeCol
     let tiers = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Min(5),                  // Tier 1: Dual Telemetry Charts (TOP)
-            Constraint::Length(gauges_height),   // Tier 2: System Gauges (BELOW GRAPHS)
+            Constraint::Min(5),                // Tier 1: Dual Telemetry Charts (TOP)
+            Constraint::Length(gauges_height), // Tier 2: System Gauges (BELOW GRAPHS)
         ])
         .split(area);
 
@@ -255,26 +334,58 @@ fn render_cpu_status_panel(
     let mut cpu_lines = Vec::new();
 
     // Total CPU Bar with temperature and pressure indicators
-    let total_bar_w = if inner.width >= 70 { 20 } else if inner.width >= 50 { 16 } else { 12 };
-    let mut total_spans = vec![
-        Span::styled("Total: ", Style::default().fg(p.text_muted)),
-    ];
-    total_spans.extend(Theme::render_bar_spans(p, global_cpu / 100.0, total_bar_w, None));
+    let total_bar_w = if inner.width >= 70 {
+        20
+    } else if inner.width >= 50 {
+        16
+    } else {
+        12
+    };
+    let mut total_spans = vec![Span::styled("Total: ", Style::default().fg(p.text_muted))];
+    total_spans.extend(Theme::render_bar_spans(
+        p,
+        global_cpu / 100.0,
+        total_bar_w,
+        None,
+    ));
     total_spans.push(Span::styled(
         format!(" {:5.1}%", global_cpu),
-        Style::default().fg(Theme::usage_color_with_palette(p, global_cpu)).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(Theme::usage_color_with_palette(p, global_cpu))
+            .add_modifier(Modifier::BOLD),
     ));
 
     if let Some(temp) = metrics.cpu_temp_celsius {
-        let temp_color = if temp > 80.0 { p.coral } else if temp > 65.0 { p.amber } else { p.mint };
-        total_spans.push(Span::styled(format!(" {:.0}°C", temp), Style::default().fg(temp_color).add_modifier(Modifier::BOLD)));
+        let temp_color = if temp > 80.0 {
+            p.coral
+        } else if temp > 65.0 {
+            p.amber
+        } else {
+            p.mint
+        };
+        total_spans.push(Span::styled(
+            format!(" {:.0}°C", temp),
+            Style::default().fg(temp_color).add_modifier(Modifier::BOLD),
+        ));
     }
 
     if let Some(ref psi) = metrics.psi {
-        let psi_color = if psi.cpu_some > 15.0 { p.coral } else if psi.cpu_some > 5.0 { p.amber } else { p.teal };
-        total_spans.push(Span::styled(format!(" │ PSI CPU:{:.1}%", psi.cpu_some), Style::default().fg(psi_color).add_modifier(Modifier::BOLD)));
+        let psi_color = if psi.cpu_some > 15.0 {
+            p.coral
+        } else if psi.cpu_some > 5.0 {
+            p.amber
+        } else {
+            p.teal
+        };
+        total_spans.push(Span::styled(
+            format!(" │ PSI CPU:{:.1}%", psi.cpu_some),
+            Style::default().fg(psi_color).add_modifier(Modifier::BOLD),
+        ));
         if psi.io_some > 1.0 {
-            total_spans.push(Span::styled(format!(" IO:{:.1}%", psi.io_some), Style::default().fg(p.amber)));
+            total_spans.push(Span::styled(
+                format!(" IO:{:.1}%", psi.io_some),
+                Style::default().fg(p.amber),
+            ));
         }
     }
 
@@ -282,7 +393,13 @@ fn render_cpu_status_panel(
 
     // Per-core breakdown
     let max_core_rows = inner.height.saturating_sub(1) as usize;
-    let bar_w = if inner.width >= 70 { 12 } else if inner.width >= 50 { 10 } else { 6 };
+    let bar_w = if inner.width >= 70 {
+        12
+    } else if inner.width >= 50 {
+        10
+    } else {
+        6
+    };
 
     for row in 0..max_core_rows {
         let idx_l = row * 2;
@@ -295,27 +412,59 @@ fn render_cpu_status_panel(
         let mut row_spans = Vec::new();
 
         let c_l = &metrics.cpu_cores[idx_l];
-        row_spans.push(Span::styled(format!("{:<4} ", c_l.name), Style::default().fg(p.text_secondary).add_modifier(Modifier::BOLD)));
+        row_spans.push(Span::styled(
+            format!("{:<4} ", c_l.name),
+            Style::default()
+                .fg(p.text_secondary)
+                .add_modifier(Modifier::BOLD),
+        ));
         row_spans.extend(Theme::micro_bar_spans(p, c_l.usage, bar_w, None));
         row_spans.extend(vec![
-            Span::styled(format!(" {:4.1}% ", c_l.usage), Style::default().fg(Theme::usage_color_with_palette(p, c_l.usage)).add_modifier(Modifier::BOLD)),
-            Span::styled(format!("{:4}MHz", c_l.frequency_mhz), Style::default().fg(p.text_muted)),
+            Span::styled(
+                format!(" {:4.1}% ", c_l.usage),
+                Style::default()
+                    .fg(Theme::usage_color_with_palette(p, c_l.usage))
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!("{:4}MHz", c_l.frequency_mhz),
+                Style::default().fg(p.text_muted),
+            ),
         ]);
         if let Some(temp) = c_l.temp_celsius {
-            row_spans.push(Span::styled(format!(" {:.0}°C", temp), Style::default().fg(p.text_secondary)));
+            row_spans.push(Span::styled(
+                format!(" {:.0}°C", temp),
+                Style::default().fg(p.text_secondary),
+            ));
         }
 
         if idx_r < metrics.cpu_cores.len() {
             let c_r = &metrics.cpu_cores[idx_r];
             row_spans.push(Span::styled(" │ ", Style::default().fg(p.card_border)));
-            row_spans.push(Span::styled(format!("{:<4} ", c_r.name), Style::default().fg(p.text_secondary).add_modifier(Modifier::BOLD)));
+            row_spans.push(Span::styled(
+                format!("{:<4} ", c_r.name),
+                Style::default()
+                    .fg(p.text_secondary)
+                    .add_modifier(Modifier::BOLD),
+            ));
             row_spans.extend(Theme::micro_bar_spans(p, c_r.usage, bar_w, None));
             row_spans.extend(vec![
-                Span::styled(format!(" {:4.1}% ", c_r.usage), Style::default().fg(Theme::usage_color_with_palette(p, c_r.usage)).add_modifier(Modifier::BOLD)),
-                Span::styled(format!("{:4}MHz", c_r.frequency_mhz), Style::default().fg(p.text_muted)),
+                Span::styled(
+                    format!(" {:4.1}% ", c_r.usage),
+                    Style::default()
+                        .fg(Theme::usage_color_with_palette(p, c_r.usage))
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    format!("{:4}MHz", c_r.frequency_mhz),
+                    Style::default().fg(p.text_muted),
+                ),
             ]);
             if let Some(temp) = c_r.temp_celsius {
-                row_spans.push(Span::styled(format!(" {:.0}°C", temp), Style::default().fg(p.text_secondary)));
+                row_spans.push(Span::styled(
+                    format!(" {:.0}°C", temp),
+                    Style::default().fg(p.text_secondary),
+                ));
             }
         }
 
@@ -327,14 +476,21 @@ fn render_cpu_status_panel(
         if let Some(ref psi) = metrics.psi {
             let line_w = (inner.width as usize).saturating_sub(18);
             let psi_header = format!("─ Linux Pressure Stall {}", "─".repeat(line_w));
-            cpu_lines.push(Line::from(vec![
-                Span::styled(psi_header, Style::default().fg(p.card_border)),
-            ]));
+            cpu_lines.push(Line::from(vec![Span::styled(
+                psi_header,
+                Style::default().fg(p.card_border),
+            )]));
             cpu_lines.push(Line::from(vec![
                 Span::styled("CPU Stall: ", Style::default().fg(p.text_muted)),
-                Span::styled(format!("{:.1}% (some) ", psi.cpu_some), Style::default().fg(p.teal).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    format!("{:.1}% (some) ", psi.cpu_some),
+                    Style::default().fg(p.teal).add_modifier(Modifier::BOLD),
+                ),
                 Span::styled("│ MEM: ", Style::default().fg(p.card_border)),
-                Span::styled(format!("{:.1}% ", psi.mem_some), Style::default().fg(p.lavender)),
+                Span::styled(
+                    format!("{:.1}% ", psi.mem_some),
+                    Style::default().fg(p.lavender),
+                ),
                 Span::styled("│ I/O: ", Style::default().fg(p.card_border)),
                 Span::styled(format!("{:.1}%", psi.io_some), Style::default().fg(p.amber)),
             ]));
@@ -382,11 +538,16 @@ fn render_cpu_chart_panel(
         Span::styled("Realtime: ", Style::default().fg(p.text_muted)),
         Span::styled(
             format!("{:>5.1}% ", global_cpu),
-            Style::default().fg(Theme::usage_color_with_palette(p, global_cpu)).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Theme::usage_color_with_palette(p, global_cpu))
+                .add_modifier(Modifier::BOLD),
         ),
         Span::styled("│ Load: ", Style::default().fg(p.card_border)),
         Span::styled(
-            format!("{:.2} {:.2} {:.2}", metrics.load_avg.0, metrics.load_avg.1, metrics.load_avg.2),
+            format!(
+                "{:.2} {:.2} {:.2}",
+                metrics.load_avg.0, metrics.load_avg.1, metrics.load_avg.2
+            ),
             Style::default().fg(p.text_secondary),
         ),
         Span::styled(" │ PSI: ", Style::default().fg(p.card_border)),
@@ -397,7 +558,8 @@ fn render_cpu_chart_panel(
     let graph_height = chunks[1].height as usize;
     let graph_width = chunks[1].width as usize;
     if graph_height > 0 && graph_width > 0 {
-        let braille_lines = render_braille_chart(p, &metrics.cpu_history, graph_width, graph_height, 100.0);
+        let braille_lines =
+            render_braille_chart(p, &metrics.cpu_history, graph_width, graph_height, 100.0);
         let graph_widget = Paragraph::new(braille_lines);
         frame.render_widget(graph_widget, chunks[1]);
     }
@@ -424,41 +586,75 @@ fn render_memory_storage_panel(frame: &mut Frame, area: Rect, app: &App, p: &The
     let mut lines = Vec::new();
 
     // RAM Bar
-    let mem_bar_w = if inner.width >= 70 { 20 } else if inner.width >= 50 { 16 } else { 12 };
+    let mem_bar_w = if inner.width >= 70 {
+        20
+    } else if inner.width >= 50 {
+        16
+    } else {
+        12
+    };
     let ram_ratio = (metrics.mem_percent / 100.0).clamp(0.0, 1.0);
-    let mut ram_spans = vec![
-        Span::styled("RAM  ", Style::default().fg(p.lavender).add_modifier(Modifier::BOLD)),
-    ];
-    ram_spans.extend(Theme::render_bar_spans(p, ram_ratio, mem_bar_w, Some(p.lavender)));
+    let mut ram_spans = vec![Span::styled(
+        "RAM  ",
+        Style::default().fg(p.lavender).add_modifier(Modifier::BOLD),
+    )];
+    ram_spans.extend(Theme::render_bar_spans(
+        p,
+        ram_ratio,
+        mem_bar_w,
+        Some(p.lavender),
+    ));
     ram_spans.extend(vec![
         Span::styled(
             format!(" {:>5.1}%", metrics.mem_percent),
-            Style::default().fg(Theme::usage_color_with_palette(p, metrics.mem_percent)).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Theme::usage_color_with_palette(p, metrics.mem_percent))
+                .add_modifier(Modifier::BOLD),
         ),
         Span::styled(
-            format!("  {} / {}", Theme::format_bytes_compact(metrics.mem_used), Theme::format_bytes_compact(metrics.mem_total)),
+            format!(
+                "  {} / {}",
+                Theme::format_bytes_compact(metrics.mem_used),
+                Theme::format_bytes_compact(metrics.mem_total)
+            ),
             Style::default().fg(p.text_primary),
         ),
         Span::styled(
-            format!(" (Avail: {})", Theme::format_bytes_compact(metrics.mem_available)),
+            format!(
+                " (Avail: {})",
+                Theme::format_bytes_compact(metrics.mem_available)
+            ),
             Style::default().fg(p.text_secondary),
         ),
     ]);
 
     if let Some(ref psi) = metrics.psi {
         if psi.mem_some > 0.1 {
-            ram_spans.push(Span::styled(format!(" │ Stall {:.1}%", psi.mem_some), Style::default().fg(p.coral).add_modifier(Modifier::BOLD)));
+            ram_spans.push(Span::styled(
+                format!(" │ Stall {:.1}%", psi.mem_some),
+                Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+            ));
         }
     }
     lines.push(Line::from(ram_spans));
 
     // SWAP Bar
     let swap_ratio = (metrics.swap_percent / 100.0).clamp(0.0, 1.0);
-    let mut swap_spans = vec![
-        Span::styled("SWAP ", Style::default().fg(p.plum).add_modifier(Modifier::BOLD)),
-    ];
-    let swap_color = if metrics.swap_percent > 90.0 { p.coral } else { p.plum };
-    swap_spans.extend(Theme::render_bar_spans(p, swap_ratio, mem_bar_w, Some(swap_color)));
+    let mut swap_spans = vec![Span::styled(
+        "SWAP ",
+        Style::default().fg(p.plum).add_modifier(Modifier::BOLD),
+    )];
+    let swap_color = if metrics.swap_percent > 90.0 {
+        p.coral
+    } else {
+        p.plum
+    };
+    swap_spans.extend(Theme::render_bar_spans(
+        p,
+        swap_ratio,
+        mem_bar_w,
+        Some(swap_color),
+    ));
     if metrics.swap_total > 0 {
         swap_spans.extend(vec![
             Span::styled(
@@ -466,37 +662,62 @@ fn render_memory_storage_panel(frame: &mut Frame, area: Rect, app: &App, p: &The
                 Style::default().fg(swap_color).add_modifier(Modifier::BOLD),
             ),
             Span::styled(
-                format!("  {} / {}", Theme::format_bytes_compact(metrics.swap_used), Theme::format_bytes_compact(metrics.swap_total)),
+                format!(
+                    "  {} / {}",
+                    Theme::format_bytes_compact(metrics.swap_used),
+                    Theme::format_bytes_compact(metrics.swap_total)
+                ),
                 Style::default().fg(p.text_secondary),
             ),
         ]);
     } else {
-        swap_spans.push(Span::styled("   0.0%  Disabled / None", Style::default().fg(p.text_muted)));
+        swap_spans.push(Span::styled(
+            "   0.0%  Disabled / None",
+            Style::default().fg(p.text_muted),
+        ));
     }
     lines.push(Line::from(swap_spans));
 
     // GPU Telemetry (if detected)
     if let Some(ref gpu) = metrics.gpu {
-        let mut gpu_spans = vec![
-            Span::styled("GPU  ", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
-        ];
+        let mut gpu_spans = vec![Span::styled(
+            "GPU  ",
+            Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+        )];
         if let Some(usage) = gpu.usage_percent {
-            gpu_spans.extend(Theme::render_bar_spans(p, usage / 100.0, mem_bar_w, Some(p.mint)));
+            gpu_spans.extend(Theme::render_bar_spans(
+                p,
+                usage / 100.0,
+                mem_bar_w,
+                Some(p.mint),
+            ));
             gpu_spans.push(Span::styled(
                 format!(" {:>5.1}%", usage),
-                Style::default().fg(Theme::usage_color_with_palette(p, usage)).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Theme::usage_color_with_palette(p, usage))
+                    .add_modifier(Modifier::BOLD),
             ));
         } else {
-            gpu_spans.push(Span::styled(format!("{:<15}", gpu.name), Style::default().fg(p.text_secondary)));
+            gpu_spans.push(Span::styled(
+                format!("{:<15}", gpu.name),
+                Style::default().fg(p.text_secondary),
+            ));
         }
         if let (Some(used), Some(total)) = (gpu.mem_used_bytes, gpu.mem_total_bytes) {
             gpu_spans.push(Span::styled(
-                format!("  {} / {}", Theme::format_bytes_compact(used), Theme::format_bytes_compact(total)),
+                format!(
+                    "  {} / {}",
+                    Theme::format_bytes_compact(used),
+                    Theme::format_bytes_compact(total)
+                ),
                 Style::default().fg(p.text_primary),
             ));
         }
         if let Some(t) = gpu.temp_celsius {
-            gpu_spans.push(Span::styled(format!(" {:.0}°C", t), Style::default().fg(p.amber)));
+            gpu_spans.push(Span::styled(
+                format!(" {:.0}°C", t),
+                Style::default().fg(p.amber),
+            ));
         }
         lines.push(Line::from(gpu_spans));
     }
@@ -504,27 +725,49 @@ fn render_memory_storage_panel(frame: &mut Frame, area: Rect, app: &App, p: &The
     // Storage Filesystems Header
     let line_w = (inner.width as usize).saturating_sub(14);
     let fs_header = format!("─ Filesystems {}", "─".repeat(line_w));
-    lines.push(Line::from(vec![
-        Span::styled(fs_header, Style::default().fg(p.card_border)),
-    ]));
+    lines.push(Line::from(vec![Span::styled(
+        fs_header,
+        Style::default().fg(p.card_border),
+    )]));
 
     // Disks list
-    let disk_bar_w = if inner.width >= 70 { 16 } else if inner.width >= 50 { 12 } else { 10 };
+    let disk_bar_w = if inner.width >= 70 {
+        16
+    } else if inner.width >= 50 {
+        12
+    } else {
+        10
+    };
     for disk in &metrics.disks {
-        let mut disk_spans = vec![
-            Span::styled(format!("{:<11} ", disk.mount_point), Style::default().fg(p.teal).add_modifier(Modifier::BOLD)),
-        ];
-        disk_spans.extend(Theme::render_bar_spans(p, disk.used_percent / 100.0, disk_bar_w, Some(p.teal)));
+        let mut disk_spans = vec![Span::styled(
+            format!("{:<11} ", disk.mount_point),
+            Style::default().fg(p.teal).add_modifier(Modifier::BOLD),
+        )];
+        disk_spans.extend(Theme::render_bar_spans(
+            p,
+            disk.used_percent / 100.0,
+            disk_bar_w,
+            Some(p.teal),
+        ));
         disk_spans.extend(vec![
             Span::styled(
                 format!(" {:>5.1}% ", disk.used_percent),
-                Style::default().fg(Theme::usage_color_with_palette(p, disk.used_percent)).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Theme::usage_color_with_palette(p, disk.used_percent))
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::styled(
-                format!("{}/{} ", Theme::format_bytes_compact(disk.used_bytes), Theme::format_bytes_compact(disk.total_bytes)),
+                format!(
+                    "{}/{} ",
+                    Theme::format_bytes_compact(disk.used_bytes),
+                    Theme::format_bytes_compact(disk.total_bytes)
+                ),
                 Style::default().fg(p.text_primary),
             ),
-            Span::styled(format!("({})", disk.fs_type), Style::default().fg(p.text_muted)),
+            Span::styled(
+                format!("({})", disk.fs_type),
+                Style::default().fg(p.text_muted),
+            ),
         ]);
         lines.push(Line::from(disk_spans));
     }
@@ -554,7 +797,9 @@ fn render_network_chart_panel(frame: &mut Frame, area: Rect, app: &App, p: &Them
         return;
     };
 
-    let net = app.active_network_metric().unwrap_or_else(|| metrics.network.clone());
+    let net = app
+        .active_network_metric()
+        .unwrap_or_else(|| metrics.network.clone());
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -582,15 +827,40 @@ fn render_network_chart_panel(frame: &mut Frame, area: Rect, app: &App, p: &Them
     };
 
     let summary_line = Line::from(vec![
-        Span::styled("↓ ", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
-        Span::styled(format!("{:<8} ", rx_str), Style::default().fg(p.text_primary).add_modifier(Modifier::BOLD)),
-        Span::styled(format!("(Pk {}) ", rx_pk), Style::default().fg(p.text_secondary)),
+        Span::styled(
+            "↓ ",
+            Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("{:<8} ", rx_str),
+            Style::default()
+                .fg(p.text_primary)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("(Pk {}) ", rx_pk),
+            Style::default().fg(p.text_secondary),
+        ),
         Span::styled("│ ", Style::default().fg(p.card_border)),
-        Span::styled("↑ ", Style::default().fg(p.sky).add_modifier(Modifier::BOLD)),
-        Span::styled(format!("{:<8} ", tx_str), Style::default().fg(p.text_primary).add_modifier(Modifier::BOLD)),
-        Span::styled(format!("(Pk {}) ", tx_pk), Style::default().fg(p.text_secondary)),
+        Span::styled(
+            "↑ ",
+            Style::default().fg(p.sky).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("{:<8} ", tx_str),
+            Style::default()
+                .fg(p.text_primary)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("(Pk {}) ", tx_pk),
+            Style::default().fg(p.text_secondary),
+        ),
         Span::styled("│ ", Style::default().fg(p.card_border)),
-        Span::styled(format!("Σ {}/{}", total_rx, total_tx), Style::default().fg(p.text_muted)),
+        Span::styled(
+            format!("Σ {}/{}", total_rx, total_tx),
+            Style::default().fg(p.text_muted),
+        ),
     ]);
     frame.render_widget(Paragraph::new(summary_line), chunks[0]);
 
@@ -631,8 +901,14 @@ fn render_process_grid(frame: &mut Frame, area: Rect, app: &mut App, p: &ThemeCo
             format!(" [ PROCESSES ({all_count} Tasks, {running_count} Active) ] "),
             Style::default().fg(p.blue).add_modifier(Modifier::BOLD),
         ),
-        Span::styled(format!("Shown: {shown_count} │ "), Style::default().fg(p.text_muted)),
-        Span::styled(format!("View: {view_tag} │ "), Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            format!("Shown: {shown_count} │ "),
+            Style::default().fg(p.text_muted),
+        ),
+        Span::styled(
+            format!("View: {view_tag} │ "),
+            Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+        ),
     ];
 
     if app.is_searching || !app.search_query.is_empty() {
@@ -684,7 +960,11 @@ fn render_process_grid(frame: &mut Frame, area: Rect, app: &mut App, p: &ThemeCo
     .map(|(name, sort_type)| {
         let is_sorted = app.sort_by == sort_type;
         let mut text = name.to_string();
-        if is_sorted && (name.starts_with(sort_type.label()) || (sort_type == ProcessSortBy::Memory && name.starts_with("MEM%")) || (sort_type == ProcessSortBy::Disk && name.starts_with("DISK"))) {
+        if is_sorted
+            && (name.starts_with(sort_type.label())
+                || (sort_type == ProcessSortBy::Memory && name.starts_with("MEM%"))
+                || (sort_type == ProcessSortBy::Disk && name.starts_with("DISK")))
+        {
             text.push(' ');
             text.push_str(app.sort_order.symbol());
         }
@@ -692,7 +972,9 @@ fn render_process_grid(frame: &mut Frame, area: Rect, app: &mut App, p: &ThemeCo
         let style = if is_sorted {
             Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)
         } else {
-            Style::default().fg(p.text_secondary).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(p.text_secondary)
+                .add_modifier(Modifier::BOLD)
         };
 
         Cell::from(text).style(style)
@@ -718,16 +1000,23 @@ fn render_process_grid(frame: &mut Frame, area: Rect, app: &mut App, p: &ThemeCo
             };
 
             // CPU Cell
-            let mut cpu_spans = vec![
-                Span::styled(format!("{:5.1}% ", row.cpu_usage), Style::default().fg(cpu_color).add_modifier(Modifier::BOLD)),
-            ];
+            let mut cpu_spans = vec![Span::styled(
+                format!("{:5.1}% ", row.cpu_usage),
+                Style::default().fg(cpu_color).add_modifier(Modifier::BOLD),
+            )];
             cpu_spans.extend(Theme::micro_bar_spans(p, row.cpu_usage, 5, None));
 
             // MEM Cell
-            let mut mem_spans = vec![
-                Span::styled(format!("{:5.1}% ", row.memory_percent), Style::default().fg(mem_color)),
-            ];
-            mem_spans.extend(Theme::micro_bar_spans(p, row.memory_percent, 5, Some(p.lavender)));
+            let mut mem_spans = vec![Span::styled(
+                format!("{:5.1}% ", row.memory_percent),
+                Style::default().fg(mem_color),
+            )];
+            mem_spans.extend(Theme::micro_bar_spans(
+                p,
+                row.memory_percent,
+                5,
+                Some(p.lavender),
+            ));
 
             // DISK R/W Cell
             let disk_rw = if row.disk_read_sec == 0 && row.disk_write_sec == 0 {
@@ -742,13 +1031,25 @@ fn render_process_grid(frame: &mut Frame, area: Rect, app: &mut App, p: &ThemeCo
 
             // Domain Badge (Docker container or systemd service)
             let (domain_text, domain_style) = if row.domain_label.starts_with("docker:") {
-                let name = row.domain_label.strip_prefix("docker:").unwrap_or(&row.domain_label);
-                (format!("🐳 {}", name), Style::default().fg(p.cyan).add_modifier(Modifier::BOLD))
+                let name = row
+                    .domain_label
+                    .strip_prefix("docker:")
+                    .unwrap_or(&row.domain_label);
+                (
+                    format!("🐳 {}", name),
+                    Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+                )
             } else if row.domain_label.ends_with(".service") {
-                let name = row.domain_label.strip_suffix(".service").unwrap_or(&row.domain_label);
+                let name = row
+                    .domain_label
+                    .strip_suffix(".service")
+                    .unwrap_or(&row.domain_label);
                 (format!("⚙ {}", name), Style::default().fg(p.teal))
             } else if row.domain_label.starts_with("user:") {
-                let name = row.domain_label.strip_prefix("user:").unwrap_or(&row.domain_label);
+                let name = row
+                    .domain_label
+                    .strip_prefix("user:")
+                    .unwrap_or(&row.domain_label);
                 let clean = name.strip_suffix(".slice").unwrap_or(name);
                 (format!("👤 {}", clean), Style::default().fg(p.amber))
             } else {
@@ -765,17 +1066,34 @@ fn render_process_grid(frame: &mut Frame, area: Rect, app: &mut App, p: &ThemeCo
             };
 
             let name_cell = Line::from(vec![
-                Span::styled(row.prefix.as_str(), Style::default().fg(p.card_border_focus).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    row.prefix.as_str(),
+                    Style::default()
+                        .fg(p.card_border_focus)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(row.cmdline.as_str(), cmd_style),
             ]);
 
             Row::new(vec![
-                Cell::from(row.pid_display.as_str()).style(Style::default().fg(if row.is_group_header { p.cyan } else { p.text_secondary })),
+                Cell::from(row.pid_display.as_str()).style(Style::default().fg(
+                    if row.is_group_header {
+                        p.cyan
+                    } else {
+                        p.text_secondary
+                    },
+                )),
                 Cell::from(row.user.as_str()).style(Style::default().fg(p.amber)),
                 Cell::from(state_icon).style(Style::default().fg(state_color)),
                 Cell::from(Line::from(cpu_spans)),
                 Cell::from(Line::from(mem_spans)),
-                Cell::from(disk_rw).style(Style::default().fg(if row.disk_read_sec + row.disk_write_sec > 0 { p.mint } else { p.text_muted })),
+                Cell::from(disk_rw).style(Style::default().fg(
+                    if row.disk_read_sec + row.disk_write_sec > 0 {
+                        p.mint
+                    } else {
+                        p.text_muted
+                    },
+                )),
                 Cell::from(domain_text).style(domain_style),
                 Cell::from(name_cell),
             ])
@@ -814,15 +1132,23 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, p: &ThemeColors) {
     if let Some(toast) = app.active_toast() {
         footer_spans.push(Span::styled(
             format!(" ℹ {} ", toast),
-            Style::default().bg(p.blue).fg(p.bg).add_modifier(Modifier::BOLD),
+            Style::default()
+                .bg(p.blue)
+                .fg(p.bg)
+                .add_modifier(Modifier::BOLD),
         ));
     } else if app.is_searching {
         footer_spans.push(Span::styled(
             " SEARCH MODE: Type query │ [Enter/Esc] Done │ [Ctrl+u] Clear ",
-            Style::default().bg(p.amber).fg(p.bg).add_modifier(Modifier::BOLD),
+            Style::default()
+                .bg(p.amber)
+                .fg(p.bg)
+                .add_modifier(Modifier::BOLD),
         ));
     } else {
-        let current_rate = app.sample_interval_ms.load(std::sync::atomic::Ordering::Relaxed);
+        let current_rate = app
+            .sample_interval_ms
+            .load(std::sync::atomic::Ordering::Relaxed);
         let rate_color = if current_rate <= 100 {
             p.cyan
         } else if current_rate <= 500 {
@@ -832,53 +1158,115 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, p: &ThemeColors) {
         };
 
         footer_spans.extend(vec![
-            Span::styled(" [q]", Style::default().fg(p.coral).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                " [q]",
+                Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Quit ", Style::default().fg(p.text_muted)),
-            Span::styled("[↑↓]", Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[↑↓]",
+                Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Nav ", Style::default().fg(p.text_muted)),
-            Span::styled("[Spc]", Style::default().fg(p.blue).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[Spc]",
+                Style::default().fg(p.blue).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Fold ", Style::default().fg(p.text_muted)),
-            Span::styled("[n]", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[n]",
+                Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Net ", Style::default().fg(p.text_muted)),
-            Span::styled("[u]", Style::default().fg(p.amber).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[u]",
+                Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("User ", Style::default().fg(p.text_muted)),
-            Span::styled("[r]", Style::default().fg(p.orange).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[r]",
+                Style::default().fg(p.orange).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Nice ", Style::default().fg(p.text_muted)),
-            Span::styled("[g]", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[g]",
+                Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Grp ", Style::default().fg(p.text_muted)),
-            Span::styled("[t]", Style::default().fg(p.teal).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[t]",
+                Style::default().fg(p.teal).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Tree ", Style::default().fg(p.text_muted)),
-            Span::styled("[C]", Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[C]",
+                Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Docker ", Style::default().fg(p.text_muted)),
-            Span::styled("[s]", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[s]",
+                Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Ports ", Style::default().fg(p.text_muted)),
-            Span::styled("[l]", Style::default().fg(p.amber).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[l]",
+                Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Logs ", Style::default().fg(p.text_muted)),
-            Span::styled("[x]", Style::default().fg(p.coral).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[x]",
+                Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Kill ", Style::default().fg(p.text_muted)),
-            Span::styled("[T]", Style::default().fg(p.lavender).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[T]",
+                Style::default().fg(p.lavender).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Thm ", Style::default().fg(p.text_muted)),
-            Span::styled("[/]", Style::default().fg(p.amber).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[/]",
+                Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Find ", Style::default().fg(p.text_muted)),
-            Span::styled("[o/c/m/p]", Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[o/c/m/p]",
+                Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Sort ", Style::default().fg(p.text_muted)),
-            Span::styled("[^S]", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[^S]",
+                Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Snap ", Style::default().fg(p.text_muted)),
-            Span::styled("[?]", Style::default().fg(p.lavender).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[?]",
+                Style::default().fg(p.lavender).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Help", Style::default().fg(p.text_muted)),
         ]);
 
         if area.width >= 120 {
             footer_spans.extend(vec![
-                Span::styled(" │ Scoppiato LAB ", Style::default().fg(Color::Rgb(0, 230, 118)).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    " │ Scoppiato LAB ",
+                    Style::default()
+                        .fg(Color::Rgb(0, 230, 118))
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled("scoppiato.it", Style::default().fg(p.text_muted)),
             ]);
         }
         if area.width >= 150 {
             footer_spans.extend(vec![
-                Span::styled(" │ [Tab]", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    " │ [Tab]",
+                    Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(" View ", Style::default().fg(p.text_muted)),
-                Span::styled(format!("[+/-]{}ms", current_rate), Style::default().fg(rate_color).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    format!("[+/-]{}ms", current_rate),
+                    Style::default().fg(rate_color).add_modifier(Modifier::BOLD),
+                ),
             ]);
         }
     }
@@ -888,7 +1276,12 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, p: &ThemeColors) {
 }
 
 /// Modal: Process Details Inspector Popup
-fn render_inspect_modal(frame: &mut Frame, area: Rect, proc: &crate::metrics::ProcessMetric, p: &ThemeColors) {
+fn render_inspect_modal(
+    frame: &mut Frame,
+    area: Rect,
+    proc: &crate::metrics::ProcessMetric,
+    p: &ThemeColors,
+) {
     let popup_area = centered_rect(68, 68, area);
     frame.render_widget(Clear, popup_area);
 
@@ -897,74 +1290,133 @@ fn render_inspect_modal(frame: &mut Frame, area: Rect, proc: &crate::metrics::Pr
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(p.card_border_focus))
-        .title(Span::styled(title, Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)))
+        .title(Span::styled(
+            title,
+            Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+        ))
         .style(Style::default().bg(p.surface));
 
     let inner = block.inner(popup_area);
     frame.render_widget(block, popup_area);
 
-    let parent_str = proc.parent_pid.map(|p| p.to_string()).unwrap_or_else(|| "None".to_string());
+    let parent_str = proc
+        .parent_pid
+        .map(|p| p.to_string())
+        .unwrap_or_else(|| "None".to_string());
     let cpu_color = Theme::usage_color_with_palette(p, proc.cpu_usage);
     let mem_color = Theme::usage_color_with_palette(p, proc.memory_percent);
 
     let text = vec![
         Line::from(vec![
             Span::styled("Name:             ", Style::default().fg(p.text_muted)),
-            Span::styled(&proc.name, Style::default().fg(p.text_primary).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                &proc.name,
+                Style::default()
+                    .fg(p.text_primary)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("   Domain: ", Style::default().fg(p.text_muted)),
-            Span::styled(proc.domain.label(), Style::default().fg(p.teal).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                proc.domain.label(),
+                Style::default().fg(p.teal).add_modifier(Modifier::BOLD),
+            ),
         ]),
         Line::from(vec![
             Span::styled("PID / Parent:     ", Style::default().fg(p.text_muted)),
-            Span::styled(format!("{} / {}", proc.pid, parent_str), Style::default().fg(p.cyan)),
+            Span::styled(
+                format!("{} / {}", proc.pid, parent_str),
+                Style::default().fg(p.cyan),
+            ),
             Span::styled("   User: ", Style::default().fg(p.text_muted)),
             Span::styled(&proc.user, Style::default().fg(p.amber)),
             Span::styled("   State: ", Style::default().fg(p.text_muted)),
             Span::styled(&proc.status, Style::default().fg(p.mint)),
             Span::styled("   Nice: ", Style::default().fg(p.text_muted)),
-            Span::styled(format!("{}", proc.nice), Style::default().fg(p.lavender).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("{}", proc.nice),
+                Style::default().fg(p.lavender).add_modifier(Modifier::BOLD),
+            ),
         ]),
         Line::from(vec![
             Span::styled("CPU Usage:        ", Style::default().fg(p.text_muted)),
-            Span::styled(format!("{:.1}% (Surge: +{:.1}%)", proc.cpu_usage, proc.cpu_delta), Style::default().fg(cpu_color).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("{:.1}% (Surge: +{:.1}%)", proc.cpu_usage, proc.cpu_delta),
+                Style::default().fg(cpu_color).add_modifier(Modifier::BOLD),
+            ),
         ]),
         Line::from(vec![
             Span::styled("Resident Memory:  ", Style::default().fg(p.text_muted)),
-            Span::styled(format!("{} ({:.1}%)", Theme::format_bytes(proc.memory_bytes), proc.memory_percent), Style::default().fg(mem_color)),
+            Span::styled(
+                format!(
+                    "{} ({:.1}%)",
+                    Theme::format_bytes(proc.memory_bytes),
+                    proc.memory_percent
+                ),
+                Style::default().fg(mem_color),
+            ),
         ]),
         Line::from(vec![
             Span::styled("Disk I/O Rate:    ", Style::default().fg(p.text_muted)),
             Span::styled(
-                format!("Read: {}/s  Write: {}/s", Theme::format_bytes(proc.disk_read_bytes_sec), Theme::format_bytes(proc.disk_written_bytes_sec)),
+                format!(
+                    "Read: {}/s  Write: {}/s",
+                    Theme::format_bytes(proc.disk_read_bytes_sec),
+                    Theme::format_bytes(proc.disk_written_bytes_sec)
+                ),
                 Style::default().fg(p.text_primary),
             ),
         ]),
         Line::from(vec![
             Span::styled("Kernel Thread:    ", Style::default().fg(p.text_muted)),
-            Span::styled(if proc.is_kernel_thread { "Yes" } else { "No" }, Style::default().fg(p.text_secondary)),
+            Span::styled(
+                if proc.is_kernel_thread { "Yes" } else { "No" },
+                Style::default().fg(p.text_secondary),
+            ),
         ]),
         Line::from(""),
-        Line::from(vec![
-            Span::styled("Full Command Line:", Style::default().fg(p.lavender).add_modifier(Modifier::BOLD)),
-        ]),
-        Line::from(Span::styled(&proc.cmdline, Style::default().fg(p.text_primary))),
+        Line::from(vec![Span::styled(
+            "Full Command Line:",
+            Style::default().fg(p.lavender).add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(Span::styled(
+            &proc.cmdline,
+            Style::default().fg(p.text_primary),
+        )),
         Line::from(""),
         Line::from(vec![
             Span::styled("Quick Tools: ", Style::default().fg(p.text_muted)),
-            Span::styled("[r] ", Style::default().fg(p.amber).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[r] ",
+                Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Renice Priority   ", Style::default().fg(p.text_primary)),
-            Span::styled("[s] ", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[s] ",
+                Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Ports   ", Style::default().fg(p.text_primary)),
-            Span::styled("[l] ", Style::default().fg(p.teal).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[l] ",
+                Style::default().fg(p.teal).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Logs   ", Style::default().fg(p.text_primary)),
-            Span::styled("[e] ", Style::default().fg(p.lavender).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[e] ",
+                Style::default().fg(p.lavender).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Env   ", Style::default().fg(p.text_primary)),
-            Span::styled("[x] ", Style::default().fg(p.coral).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[x] ",
+                Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Kill", Style::default().fg(p.coral)),
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("[Esc / Enter]", Style::default().fg(p.coral).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[Esc / Enter]",
+                Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+            ),
             Span::styled(" Close Inspector", Style::default().fg(p.text_muted)),
         ]),
     ];
@@ -986,22 +1438,35 @@ fn render_sockets_modal(
     let popup_area = centered_rect(72, 70, area);
     frame.render_widget(Clear, popup_area);
 
-    let title = format!(" [ Live Network Sockets & Ports: {} (PID: {}) ] ", name, pid);
+    let title = format!(
+        " [ Live Network Sockets & Ports: {} (PID: {}) ] ",
+        name, pid
+    );
     let block = Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(p.mint))
-        .title(Span::styled(title, Style::default().fg(p.mint).add_modifier(Modifier::BOLD)))
+        .title(Span::styled(
+            title,
+            Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+        ))
         .style(Style::default().bg(p.surface));
 
     let inner = block.inner(popup_area);
     frame.render_widget(block, popup_area);
 
     let mut lines = Vec::new();
-    lines.push(Line::from(vec![
-        Span::styled(format!("{:<6} {:<24} {:<24} {:<12}", "PROTO", "LOCAL ADDRESS:PORT", "REMOTE ADDRESS:PORT", "STATE"), Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)),
-    ]));
-    lines.push(Line::from(Span::styled("─".repeat(68), Style::default().fg(p.card_border))));
+    lines.push(Line::from(vec![Span::styled(
+        format!(
+            "{:<6} {:<24} {:<24} {:<12}",
+            "PROTO", "LOCAL ADDRESS:PORT", "REMOTE ADDRESS:PORT", "STATE"
+        ),
+        Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+    )]));
+    lines.push(Line::from(Span::styled(
+        "─".repeat(68),
+        Style::default().fg(p.card_border),
+    )));
 
     let visible_sockets: Vec<_> = sockets.iter().skip(scroll).collect();
     for sock in visible_sockets {
@@ -1021,16 +1486,36 @@ fn render_sockets_modal(
         };
 
         lines.push(Line::from(vec![
-            Span::styled(format!("{:<6} ", sock.proto), Style::default().fg(p.teal).add_modifier(Modifier::BOLD)),
-            Span::styled(format!("{:<24} ", local), Style::default().fg(p.text_primary)),
-            Span::styled(format!("{:<24} ", remote), Style::default().fg(p.text_secondary)),
-            Span::styled(format!("{:<12}", state_text), Style::default().fg(state_color).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("{:<6} ", sock.proto),
+                Style::default().fg(p.teal).add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!("{:<24} ", local),
+                Style::default().fg(p.text_primary),
+            ),
+            Span::styled(
+                format!("{:<24} ", remote),
+                Style::default().fg(p.text_secondary),
+            ),
+            Span::styled(
+                format!("{:<12}", state_text),
+                Style::default()
+                    .fg(state_color)
+                    .add_modifier(Modifier::BOLD),
+            ),
         ]));
     }
 
     if sockets.len() > scroll + inner.height as usize {
         lines.push(Line::from(""));
-        lines.push(Line::from(Span::styled(format!("... {} more sockets (scroll with ↑/↓/mouse)", sockets.len() - scroll - inner.height as usize), Style::default().fg(p.amber))));
+        lines.push(Line::from(Span::styled(
+            format!(
+                "... {} more sockets (scroll with ↑/↓/mouse)",
+                sockets.len() - scroll - inner.height as usize
+            ),
+            Style::default().fg(p.amber),
+        )));
     }
 
     let p_widget = Paragraph::new(lines);
@@ -1055,7 +1540,10 @@ fn render_environ_modal(
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(p.lavender))
-        .title(Span::styled(title, Style::default().fg(p.lavender).add_modifier(Modifier::BOLD)))
+        .title(Span::styled(
+            title,
+            Style::default().fg(p.lavender).add_modifier(Modifier::BOLD),
+        ))
         .style(Style::default().bg(p.surface));
 
     let inner = block.inner(popup_area);
@@ -1066,7 +1554,10 @@ fn render_environ_modal(
 
     for (k, v) in visible_vars {
         lines.push(Line::from(vec![
-            Span::styled(format!("{}: ", k), Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("{}: ", k),
+                Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+            ),
             Span::styled(v.as_str(), Style::default().fg(p.text_primary)),
         ]));
     }
@@ -1093,7 +1584,10 @@ fn render_logs_modal(
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(p.amber))
-        .title(Span::styled(title, Style::default().fg(p.amber).add_modifier(Modifier::BOLD)))
+        .title(Span::styled(
+            title,
+            Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+        ))
         .style(Style::default().bg(p.surface));
 
     let inner = block.inner(popup_area);
@@ -1127,7 +1621,10 @@ fn render_kill_modal(frame: &mut Frame, area: Rect, pid: u32, name: &str, p: &Th
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(p.coral))
-        .title(Span::styled(" [ Terminate Process ] ", Style::default().fg(p.coral).add_modifier(Modifier::BOLD)))
+        .title(Span::styled(
+            " [ Terminate Process ] ",
+            Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+        ))
         .style(Style::default().bg(p.surface));
 
     let inner = block.inner(popup_area);
@@ -1135,23 +1632,42 @@ fn render_kill_modal(frame: &mut Frame, area: Rect, pid: u32, name: &str, p: &Th
 
     let text = vec![
         Line::from(""),
-        Line::from(vec![
-            Span::styled("Send termination signal to:", Style::default().fg(p.text_primary)),
-        ]),
-        Line::from(vec![
-            Span::styled(format!("PID {} - \"{}\"", pid, name), Style::default().fg(p.amber).add_modifier(Modifier::BOLD)),
-        ]),
+        Line::from(vec![Span::styled(
+            "Send termination signal to:",
+            Style::default().fg(p.text_primary),
+        )]),
+        Line::from(vec![Span::styled(
+            format!("PID {} - \"{}\"", pid, name),
+            Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+        )]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("  [t] ", Style::default().fg(p.orange).add_modifier(Modifier::BOLD)),
-            Span::styled("SIGTERM (15) - Graceful Termination", Style::default().fg(p.text_primary)),
+            Span::styled(
+                "  [t] ",
+                Style::default().fg(p.orange).add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                "SIGTERM (15) - Graceful Termination",
+                Style::default().fg(p.text_primary),
+            ),
         ]),
         Line::from(vec![
-            Span::styled("  [k] ", Style::default().fg(p.coral).add_modifier(Modifier::BOLD)),
-            Span::styled("SIGKILL (9)  - Force Kill Immediately", Style::default().fg(p.text_primary)),
+            Span::styled(
+                "  [k] ",
+                Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                "SIGKILL (9)  - Force Kill Immediately",
+                Style::default().fg(p.text_primary),
+            ),
         ]),
         Line::from(vec![
-            Span::styled("  [Esc] ", Style::default().fg(p.text_muted).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "  [Esc] ",
+                Style::default()
+                    .fg(p.text_muted)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Cancel and Return", Style::default().fg(p.text_muted)),
         ]),
     ];
@@ -1176,7 +1692,10 @@ fn render_renice_modal(
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(p.amber))
-        .title(Span::styled(" [ Adjust Process Priority (Renice) ] ", Style::default().fg(p.amber).add_modifier(Modifier::BOLD)))
+        .title(Span::styled(
+            " [ Adjust Process Priority (Renice) ] ",
+            Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+        ))
         .style(Style::default().bg(p.surface));
 
     let inner = block.inner(popup_area);
@@ -1198,40 +1717,91 @@ fn render_renice_modal(
         Line::from(""),
         Line::from(vec![
             Span::styled("Process: ", Style::default().fg(p.text_muted)),
-            Span::styled(format!("PID {} - \"{}\"", pid, name), Style::default().fg(p.text_primary).add_modifier(Modifier::BOLD)),
-            Span::styled(format!("  (Current Nice: {})", current_nice), Style::default().fg(p.lavender)),
+            Span::styled(
+                format!("PID {} - \"{}\"", pid, name),
+                Style::default()
+                    .fg(p.text_primary)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!("  (Current Nice: {})", current_nice),
+                Style::default().fg(p.lavender),
+            ),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled("Target Nice:  ", Style::default().fg(p.text_primary)),
-            Span::styled(format!(" [ {:>3} ] ", target_nice), Style::default().bg(p.amber).fg(p.bg).add_modifier(Modifier::BOLD)),
-            Span::styled(format!("  {}", priority_desc), Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!(" [ {:>3} ] ", target_nice),
+                Style::default()
+                    .bg(p.amber)
+                    .fg(p.bg)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!("  {}", priority_desc),
+                Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+            ),
         ]),
-        Line::from(vec![
-            Span::styled("             (-20 Highest Priority .. 19 Lowest Priority)", Style::default().fg(p.text_muted)),
-        ]),
+        Line::from(vec![Span::styled(
+            "             (-20 Highest Priority .. 19 Lowest Priority)",
+            Style::default().fg(p.text_muted),
+        )]),
         Line::from(""),
-        Line::from(Span::styled("Quick Presets:", Style::default().fg(p.lavender).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(
+            "Quick Presets:",
+            Style::default().fg(p.lavender).add_modifier(Modifier::BOLD),
+        )),
         Line::from(vec![
-            Span::styled("  [1] ", Style::default().fg(p.amber).add_modifier(Modifier::BOLD)),
-            Span::styled("Nice -10 (High Priority)   ", Style::default().fg(p.text_primary)),
-            Span::styled("[2] ", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
-            Span::styled("Nice  0 (Normal / Default)", Style::default().fg(p.text_primary)),
+            Span::styled(
+                "  [1] ",
+                Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                "Nice -10 (High Priority)   ",
+                Style::default().fg(p.text_primary),
+            ),
+            Span::styled(
+                "[2] ",
+                Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                "Nice  0 (Normal / Default)",
+                Style::default().fg(p.text_primary),
+            ),
         ]),
         Line::from(vec![
-            Span::styled("  [3] ", Style::default().fg(p.teal).add_modifier(Modifier::BOLD)),
-            Span::styled("Nice  10 (Low / Background) ", Style::default().fg(p.text_primary)),
-            Span::styled("[4] ", Style::default().fg(p.coral).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "  [3] ",
+                Style::default().fg(p.teal).add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                "Nice  10 (Low / Background) ",
+                Style::default().fg(p.text_primary),
+            ),
+            Span::styled(
+                "[4] ",
+                Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Nice 19 (Idle Only)", Style::default().fg(p.text_primary)),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled("Controls: ", Style::default().fg(p.text_muted)),
-            Span::styled("[↑/↓] ", Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[↑/↓] ",
+                Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Adjust ±1  ", Style::default().fg(p.text_primary)),
-            Span::styled("[Enter] ", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[Enter] ",
+                Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Apply Renice  ", Style::default().fg(p.text_primary)),
-            Span::styled("[Esc] ", Style::default().fg(p.coral).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[Esc] ",
+                Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("Cancel", Style::default().fg(p.text_muted)),
         ]),
     ];
@@ -1255,7 +1825,10 @@ fn render_user_filter_modal(
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(p.mint))
-        .title(Span::styled(" [ Filter Processes by User ] ", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)))
+        .title(Span::styled(
+            " [ Filter Processes by User ] ",
+            Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+        ))
         .style(Style::default().bg(p.surface));
 
     let inner = block.inner(popup_area);
@@ -1263,20 +1836,32 @@ fn render_user_filter_modal(
 
     let mut lines = Vec::new();
     lines.push(Line::from("Select a user to display only their processes:"));
-    lines.push(Line::from(Span::styled("─".repeat(inner.width as usize), Style::default().fg(p.card_border))));
+    lines.push(Line::from(Span::styled(
+        "─".repeat(inner.width as usize),
+        Style::default().fg(p.card_border),
+    )));
 
     // Option 0: ALL Users
     let is_all_selected = selected_idx == 0;
     let is_all_active = current_filter.is_none();
     let all_style = if is_all_selected {
-        Style::default().bg(p.selection_bg).fg(p.cyan).add_modifier(Modifier::BOLD)
+        Style::default()
+            .bg(p.selection_bg)
+            .fg(p.cyan)
+            .add_modifier(Modifier::BOLD)
     } else {
         Style::default().fg(p.text_primary)
     };
     let marker = if is_all_active { " ● " } else { " ○ " };
     lines.push(Line::from(vec![
-        Span::styled(if is_all_selected { "▶ " } else { "  " }, Style::default().fg(p.cyan)),
-        Span::styled(marker, Style::default().fg(if is_all_active { p.mint } else { p.text_muted })),
+        Span::styled(
+            if is_all_selected { "▶ " } else { "  " },
+            Style::default().fg(p.cyan),
+        ),
+        Span::styled(
+            marker,
+            Style::default().fg(if is_all_active { p.mint } else { p.text_muted }),
+        ),
         Span::styled("ALL USERS (Show all processes)", all_style),
     ]));
 
@@ -1286,29 +1871,53 @@ fn render_user_filter_modal(
         let is_active = current_filter == Some(u.as_str());
 
         let row_style = if is_selected {
-            Style::default().bg(p.selection_bg).fg(p.amber).add_modifier(Modifier::BOLD)
+            Style::default()
+                .bg(p.selection_bg)
+                .fg(p.amber)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(p.text_primary)
         };
 
         let active_dot = if is_active { " ● " } else { " ○ " };
         lines.push(Line::from(vec![
-            Span::styled(if is_selected { "▶ " } else { "  " }, Style::default().fg(p.cyan)),
-            Span::styled(active_dot, Style::default().fg(if is_active { p.mint } else { p.text_muted })),
+            Span::styled(
+                if is_selected { "▶ " } else { "  " },
+                Style::default().fg(p.cyan),
+            ),
+            Span::styled(
+                active_dot,
+                Style::default().fg(if is_active { p.mint } else { p.text_muted }),
+            ),
             Span::styled(format!("{:<18}", u), row_style),
-            Span::styled(format!(" ({} tasks)", count), Style::default().fg(p.text_muted)),
+            Span::styled(
+                format!(" ({} tasks)", count),
+                Style::default().fg(p.text_muted),
+            ),
         ]));
     }
 
     lines.push(Line::from(""));
     lines.push(Line::from(vec![
-        Span::styled("[↑/↓] ", Style::default().fg(p.cyan).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "[↑/↓] ",
+            Style::default().fg(p.cyan).add_modifier(Modifier::BOLD),
+        ),
         Span::styled("Select User  ", Style::default().fg(p.text_muted)),
-        Span::styled("[Enter] ", Style::default().fg(p.mint).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "[Enter] ",
+            Style::default().fg(p.mint).add_modifier(Modifier::BOLD),
+        ),
         Span::styled("Apply  ", Style::default().fg(p.text_muted)),
-        Span::styled("[c] ", Style::default().fg(p.amber).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "[c] ",
+            Style::default().fg(p.amber).add_modifier(Modifier::BOLD),
+        ),
         Span::styled("Clear  ", Style::default().fg(p.text_muted)),
-        Span::styled("[Esc] ", Style::default().fg(p.coral).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "[Esc] ",
+            Style::default().fg(p.coral).add_modifier(Modifier::BOLD),
+        ),
         Span::styled("Close", Style::default().fg(p.text_muted)),
     ]));
 
@@ -1325,7 +1934,10 @@ fn render_help_modal(frame: &mut Frame, area: Rect, p: &ThemeColors) {
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(p.card_border_focus))
-        .title(Span::styled(" [ sltop Help & Keybindings ] ", Style::default().fg(p.lavender).add_modifier(Modifier::BOLD)))
+        .title(Span::styled(
+            " [ sltop Help & Keybindings ] ",
+            Style::default().fg(p.lavender).add_modifier(Modifier::BOLD),
+        ))
         .style(Style::default().bg(p.surface));
 
     let inner = block.inner(popup_area);

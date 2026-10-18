@@ -162,7 +162,11 @@ fn read_thermal_zone_temp() -> Option<f32> {
     if let Ok(entries) = std::fs::read_dir("/sys/class/thermal") {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.file_name().map(|n| n.to_string_lossy().starts_with("thermal_zone")).unwrap_or(false) {
+            if path
+                .file_name()
+                .map(|n| n.to_string_lossy().starts_with("thermal_zone"))
+                .unwrap_or(false)
+            {
                 let temp_file = path.join("temp");
                 if let Ok(content) = std::fs::read_to_string(temp_file) {
                     if let Ok(milli) = content.trim().parse::<f32>() {
@@ -284,7 +288,8 @@ impl MetricsCollector {
                         break;
                     }
 
-                    let interval = Duration::from_millis(sample_interval_ms.load(Ordering::Relaxed).max(100));
+                    let interval =
+                        Duration::from_millis(sample_interval_ms.load(Ordering::Relaxed).max(100));
                     let sleep_step = Duration::from_millis(10);
                     let mut elapsed = Duration::ZERO;
                     while elapsed < interval && running.load(Ordering::Relaxed) {
@@ -299,7 +304,10 @@ impl MetricsCollector {
     /// Performs one sampling cycle and produces a `SystemMetrics` struct
     pub fn sample(&mut self) -> SystemMetrics {
         let now = Instant::now();
-        let delta_secs = now.duration_since(self.last_sample_time).as_secs_f64().max(0.01);
+        let delta_secs = now
+            .duration_since(self.last_sample_time)
+            .as_secs_f64()
+            .max(0.01);
         self.last_sample_time = now;
 
         // Refresh CPU, memory, and network stats
@@ -398,7 +406,9 @@ impl MetricsCollector {
         };
 
         // Refresh filesystems
-        if self.last_disk_refresh.elapsed() >= Duration::from_secs(5) || self.cached_disks.is_empty() {
+        if self.last_disk_refresh.elapsed() >= Duration::from_secs(5)
+            || self.cached_disks.is_empty()
+        {
             self.disks.refresh(true);
             self.last_disk_refresh = now;
 
@@ -456,14 +466,17 @@ impl MetricsCollector {
             let rx_rate = (rx_bytes as f64 / delta_secs) as u64;
             let tx_rate = (tx_bytes as f64 / delta_secs) as u64;
 
-            let iface_hist = self.iface_histories.entry(iface_name.clone()).or_insert_with(|| {
-                (
-                    VecDeque::with_capacity(MAX_HISTORY_LEN),
-                    VecDeque::with_capacity(MAX_HISTORY_LEN),
-                    0,
-                    0,
-                )
-            });
+            let iface_hist = self
+                .iface_histories
+                .entry(iface_name.clone())
+                .or_insert_with(|| {
+                    (
+                        VecDeque::with_capacity(MAX_HISTORY_LEN),
+                        VecDeque::with_capacity(MAX_HISTORY_LEN),
+                        0,
+                        0,
+                    )
+                });
 
             iface_hist.2 = iface_hist.2.max(rx_rate);
             iface_hist.3 = iface_hist.3.max(tx_rate);
@@ -520,8 +533,10 @@ impl MetricsCollector {
         }
 
         interfaces.sort_by(|a, b| {
-            let a_virt = a.name.starts_with("veth") || a.name.starts_with("br-") || a.name == "docker0";
-            let b_virt = b.name.starts_with("veth") || b.name.starts_with("br-") || b.name == "docker0";
+            let a_virt =
+                a.name.starts_with("veth") || a.name.starts_with("br-") || a.name == "docker0";
+            let b_virt =
+                b.name.starts_with("veth") || b.name.starts_with("br-") || b.name == "docker0";
             match (a_virt, b_virt) {
                 (false, true) => std::cmp::Ordering::Less,
                 (true, false) => std::cmp::Ordering::Greater,
@@ -563,8 +578,13 @@ impl MetricsCollector {
         let mut running_tasks = 0;
         let mut sleeping_tasks = 0;
 
-        if self.last_proc_refresh.elapsed() >= Duration::from_millis(400) || self.cached_processes.is_empty() {
-            let proc_delta_secs = now.duration_since(self.last_proc_refresh).as_secs_f64().max(0.05);
+        if self.last_proc_refresh.elapsed() >= Duration::from_millis(400)
+            || self.cached_processes.is_empty()
+        {
+            let proc_delta_secs = now
+                .duration_since(self.last_proc_refresh)
+                .as_secs_f64()
+                .max(0.05);
             self.sys.refresh_processes(ProcessesToUpdate::All, true);
             self.last_proc_refresh = now;
 
@@ -581,7 +601,11 @@ impl MetricsCollector {
                     let current_cpu = proc_info.cpu_usage();
                     new_cpu_map.insert(u_pid, current_cpu);
 
-                    let prev_cpu = self.prev_cpu_map.get(&u_pid).copied().unwrap_or(current_cpu);
+                    let prev_cpu = self
+                        .prev_cpu_map
+                        .get(&u_pid)
+                        .copied()
+                        .unwrap_or(current_cpu);
                     let cpu_delta = (current_cpu - prev_cpu).max(0.0);
 
                     let proc_mem = proc_info.memory();
@@ -624,11 +648,14 @@ impl MetricsCollector {
 
                     let disk = proc_info.disk_usage();
                     let disk_read_bytes_sec = (disk.read_bytes as f64 / proc_delta_secs) as u64;
-                    let disk_written_bytes_sec = (disk.written_bytes as f64 / proc_delta_secs) as u64;
+                    let disk_written_bytes_sec =
+                        (disk.written_bytes as f64 / proc_delta_secs) as u64;
 
                     // Domain resolution with 30s cache TTL
                     let domain = match self.cached_domain_map.get(&u_pid) {
-                        Some((dom, ts)) if now.duration_since(*ts) < Duration::from_secs(30) => dom.clone(),
+                        Some((dom, ts)) if now.duration_since(*ts) < Duration::from_secs(30) => {
+                            dom.clone()
+                        }
                         _ => {
                             let d = self.container_tracker.resolve_domain(u_pid);
                             self.cached_domain_map.insert(u_pid, (d.clone(), now));
@@ -713,5 +740,11 @@ impl MetricsCollector {
             psi: self.cached_psi,
             surge_process: self.latest_surge.clone(),
         }
+    }
+}
+
+impl Default for MetricsCollector {
+    fn default() -> Self {
+        Self::new()
     }
 }

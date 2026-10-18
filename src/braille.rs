@@ -17,7 +17,11 @@ pub fn render_braille_chart(
     let show_axis = width >= 14 && height >= 3;
     let axis_width = if show_axis { 7 } else { 0 };
     let graph_width = width.saturating_sub(axis_width);
-    let graph_height = if show_axis { height.saturating_sub(1) } else { height };
+    let graph_height = if show_axis {
+        height.saturating_sub(1)
+    } else {
+        height
+    };
 
     let sub_width = graph_width * 2;
     let sub_height = graph_height * 4;
@@ -116,17 +120,21 @@ pub fn render_braille_chart(
                 char::from_u32(0x2800 + bits as u32).unwrap_or(' ')
             };
 
-            spans.push(Span::styled(ch.to_string(), Style::default().fg(row_gradient_color)));
+            spans.push(Span::styled(
+                ch.to_string(),
+                Style::default().fg(row_gradient_color),
+            ));
         }
 
         lines.push(Line::from(spans));
     }
 
     if show_axis {
-        let mut base_spans = Vec::with_capacity(3);
-        base_spans.push(Span::styled("   0%", Style::default().fg(p.text_muted)));
-        base_spans.push(Span::styled(" ┴", Style::default().fg(p.card_border)));
-        base_spans.push(Span::styled("─".repeat(graph_width), Style::default().fg(p.card_border)));
+        let base_spans = vec![
+            Span::styled("   0%", Style::default().fg(p.text_muted)),
+            Span::styled(" ┴", Style::default().fg(p.card_border)),
+            Span::styled("─".repeat(graph_width), Style::default().fg(p.card_border)),
+        ];
         lines.push(Line::from(base_spans));
     }
 
@@ -148,7 +156,11 @@ pub fn render_network_braille_chart(
     let show_axis = width >= 14 && height >= 3;
     let axis_width = if show_axis { 7 } else { 0 };
     let graph_width = width.saturating_sub(axis_width);
-    let graph_height = if show_axis { height.saturating_sub(1) } else { height };
+    let graph_height = if show_axis {
+        height.saturating_sub(1)
+    } else {
+        height
+    };
 
     let sub_width = graph_width * 2;
     let sub_height = graph_height * 4;
@@ -269,9 +281,18 @@ pub fn render_network_braille_chart(
 
         if show_axis {
             let (label_text, tick_char) = if row_idx == 0 {
-                (format!("{:>5}", Theme::format_bytes_compact(max_rate as u64)), " ┤")
+                (
+                    format!("{:>5}", Theme::format_bytes_compact(max_rate as u64)),
+                    " ┤",
+                )
             } else if row_idx == graph_height / 2 {
-                (format!("{:>5}", Theme::format_bytes_compact((max_rate / 2.0) as u64)), " ┤")
+                (
+                    format!(
+                        "{:>5}",
+                        Theme::format_bytes_compact((max_rate / 2.0) as u64)
+                    ),
+                    " ┤",
+                )
             } else {
                 ("     ".to_string(), " │")
             };
@@ -307,10 +328,11 @@ pub fn render_network_braille_chart(
     }
 
     if show_axis {
-        let mut base_spans = Vec::with_capacity(3);
-        base_spans.push(Span::styled("   0B", Style::default().fg(p.text_muted)));
-        base_spans.push(Span::styled(" ┴", Style::default().fg(p.card_border)));
-        base_spans.push(Span::styled("─".repeat(graph_width), Style::default().fg(p.card_border)));
+        let base_spans = vec![
+            Span::styled("   0B", Style::default().fg(p.text_muted)),
+            Span::styled(" ┴", Style::default().fg(p.card_border)),
+            Span::styled("─".repeat(graph_width), Style::default().fg(p.card_border)),
+        ];
         lines.push(Line::from(base_spans));
     }
 

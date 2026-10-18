@@ -136,13 +136,22 @@ impl AppConfig {
         toml.push_str("[display]\n");
         toml.push_str(&format!("theme = \"{}\"\n", self.theme));
         toml.push_str(&format!("view_mode = \"{}\"\n", self.view_mode));
-        toml.push_str(&format!("sample_interval_ms = {}\n\n", self.sample_interval_ms));
+        toml.push_str(&format!(
+            "sample_interval_ms = {}\n\n",
+            self.sample_interval_ms
+        ));
 
         toml.push_str("[process]\n");
         toml.push_str(&format!("sort_by = \"{}\"\n", self.sort_by));
         toml.push_str(&format!("sort_order = \"{}\"\n", self.sort_order));
-        toml.push_str(&format!("process_view_type = \"{}\"\n", self.process_view_type));
-        toml.push_str(&format!("hide_kernel_threads = {}\n", self.hide_kernel_threads));
+        toml.push_str(&format!(
+            "process_view_type = \"{}\"\n",
+            self.process_view_type
+        ));
+        toml.push_str(&format!(
+            "hide_kernel_threads = {}\n",
+            self.hide_kernel_threads
+        ));
         if let Some(ref u) = self.user_filter {
             toml.push_str(&format!("user_filter = \"{}\"\n\n", u));
         } else {
