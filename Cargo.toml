@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Scoppiato LAB <info@scoppiato.it>"]
 description = "Lightweight real-time terminal system monitor for Linux by Scoppiato LAB."
 homepage = "https://scoppiato.it"
-repository = "https://github.com/scoppiatolab/sltop"
+repository = "https://github.com/Scoppiato-LAB/SLTOP"
 license = "MIT"
 readme = "README.md"
 keywords = ["system-monitor", "tui", "cli", "linux", "docker"]
@@ -23,3 +23,26 @@ lto = "fat"
 codegen-units = 1
 panic = "abort"
 strip = true
+
+[package.metadata.deb]
+maintainer = "Scoppiato LAB <info@scoppiato.it>"
+copyright = "2026, Scoppiato LAB <https://scoppiato.it>"
+license-file = ["LICENSE", "4"]
+extended-description = """\
+sltop is an ultra-lightweight real-time terminal system monitor \
+developed by Scoppiato LAB, featuring Braille graphs, container \
+cgroup resolution, PSI metrics, and interactive process controls."""
+section = "utils"
+priority = "optional"
+assets = [
+    ["target/release/sltop", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/sltop/README.md", "644"],
+    ["LICENSE", "usr/share/doc/sltop/copyright", "644"],
+]
+
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/sltop", dest = "/usr/bin/sltop", mode = "755" },
+    { source = "README.md", dest = "/usr/share/doc/sltop/README.md", mode = "644" },
+    { source = "LICENSE", dest = "/usr/share/licenses/sltop/LICENSE", mode = "644" },
+]

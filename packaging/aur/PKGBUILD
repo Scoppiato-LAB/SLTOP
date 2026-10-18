@@ -1,0 +1,25 @@
+# Maintainer: Scoppiato LAB <info@scoppiato.it>
+# Website: https://scoppiato.it
+
+pkgname=sltop-bin
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="Lightweight real-time terminal system monitor for Linux by Scoppiato LAB"
+arch=('x86_64' 'aarch64')
+url="https://github.com/Scoppiato-LAB/SLTOP"
+license=('MIT')
+provides=('sltop')
+conflicts=('sltop')
+
+source_x86_64=("https://github.com/Scoppiato-LAB/SLTOP/releases/download/v${pkgver}/sltop-linux-amd64.tar.gz")
+source_aarch64=("https://github.com/Scoppiato-LAB/SLTOP/releases/download/v${pkgver}/sltop-linux-arm64.tar.gz")
+
+# Fill these hashes after the first GitHub Release or run 'updpkgsums'
+sha256sums_x86_64=('SKIP')
+sha256sums_aarch64=('SKIP')
+
+package() {
+    install -Dm755 "${srcdir}/sltop" "${pkgdir}/usr/bin/sltop"
+    install -Dm644 "${srcdir}/README.md" "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+    install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

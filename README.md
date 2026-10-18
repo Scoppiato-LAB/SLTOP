@@ -12,8 +12,9 @@
 <p align="center">
   <a href="https://scoppiato.it"><img src="https://img.shields.io/badge/Website-scoppiato.it-00E676?style=for-the-badge&logo=safari&logoColor=white" alt="Website"></a>
   <a href="https://discord.scoppiato.it"><img src="https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+  <a href="https://crates.io/crates/sltop"><img src="https://img.shields.io/crates/v/sltop.svg?style=for-the-badge&logo=rust" alt="Crates.io"></a>
+  <a href="https://github.com/Scoppiato-LAB/SLTOP/releases"><img src="https://img.shields.io/github/v/release/Scoppiato-LAB/SLTOP?style=for-the-badge&logo=github" alt="GitHub Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/Rust-1.74%2B-orange.svg?style=for-the-badge&logo=rust" alt="Rust 1.74+">
 </p>
 
 ---
@@ -43,13 +44,71 @@
 
 ## Installation
 
+### Quick Install (Linux & macOS)
+
+Install the latest pre-compiled standalone binary with a single command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Scoppiato-LAB/SLTOP/main/install.sh | sudo bash
+```
+
+---
+
+### Package Managers
+
+#### 🦀 Cargo (Crates.io)
+If you have the Rust toolchain installed:
+```bash
+cargo install sltop
+```
+
+#### 🐧 Arch Linux (AUR)
+`sltop` is available in the Arch User Repository:
+```bash
+yay -S sltop-bin
+# or
+paru -S sltop-bin
+```
+
+#### 📦 Debian / Ubuntu (`.deb`)
+Download the latest `.deb` package from the [Releases](https://github.com/Scoppiato-LAB/SLTOP/releases) page:
+```bash
+sudo dpkg -i sltop-amd64.deb
+# or
+sudo apt install ./sltop-amd64.deb
+```
+
+#### 🎩 Fedora / RHEL (`.rpm`)
+Download the latest `.rpm` package from the [Releases](https://github.com/Scoppiato-LAB/SLTOP/releases) page:
+```bash
+sudo dnf install ./sltop-amd64.rpm
+```
+
+#### 🍏 macOS (Homebrew)
+Via the Scoppiato LAB Homebrew Tap:
+```bash
+brew install Scoppiato-LAB/tap/sltop
+```
+
+#### 🪟 Windows (Winget & Scoop)
+Via Windows Package Manager:
+```powershell
+winget install ScoppiatoLAB.sltop
+```
+Via Scoop:
+```powershell
+scoop install sltop
+```
+
+---
+
 ### From Source
 
 Requires a working [Rust](https://www.rust-lang.org/) toolchain (1.74+):
 
 ```bash
-git clone https://github.com/scoppiatolab/sltop.git
-cd sltop
+git clone https://github.com/Scoppiato-LAB/SLTOP.git
+cd SLTOP
 cargo build --release
 sudo install -m 755 target/release/sltop /usr/local/bin/
 ```

@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "description": "Lightweight real-time terminal system monitor by Scoppiato LAB",
+  "homepage": "https://scoppiato.it",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/Scoppiato-LAB/SLTOP/releases/download/v0.2.0/sltop-windows-amd64.zip",
+      "hash": "REPLACE_WITH_SHA256"
+    }
+  },
+  "bin": "sltop.exe",
+  "checkver": "github",
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/Scoppiato-LAB/SLTOP/releases/download/v$version/sltop-windows-amd64.zip"
+      }
+    }
+  }
+}
