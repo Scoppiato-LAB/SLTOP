@@ -1,0 +1,25 @@
+[package]
+name = "sltop"
+version = "0.2.0"
+edition = "2021"
+authors = ["Scoppiato LAB <info@scoppiato.it>"]
+description = "Lightweight real-time terminal system monitor for Linux by Scoppiato LAB."
+homepage = "https://scoppiato.it"
+repository = "https://github.com/scoppiatolab/sltop"
+license = "MIT"
+readme = "README.md"
+keywords = ["system-monitor", "tui", "cli", "linux", "docker"]
+categories = ["command-line-utilities", "system"]
+
+[dependencies]
+crossterm = "0.29"
+ratatui = { version = "0.30", features = ["crossterm"] }
+sysinfo = "0.39"
+crossbeam-channel = "0.5"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
